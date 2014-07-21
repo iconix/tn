@@ -1,4 +1,5 @@
 http = require('http')
+mockIndexStream = require('./mockIndexStream')
 
 indexStream = 'http://trendspottr.com/indexStream.php?q='
 
@@ -32,9 +33,9 @@ topTwtrLists = [
 ]
 
 getLatestTrends = (scoreThreshold = 100) ->
-    getTrendForTopic t for t in topics
+    getTrendsForTopic t for t in topics
 
-getTrendForTopic = (topic) ->
+getTrendsForTopic = (topic) ->
     http.get(indexStream+topic, (response) ->
         str = ''
 

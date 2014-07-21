@@ -1,0 +1,10 @@
+[ ] Made decision to keep each topic stream separate (no compelling reason thus far to combine) - so continue with filtering by score and redundancy check work
+
+[ ] Write unit tests using Jasmine
+	http://jasmine.github.io/
+
+[ ] Investigate Travis for automated testing, as suggested here: http://howtonode.org/http-mock-testing
+	https://travis-ci.org/
+
+[ ] Documentation generator
+	http://jashkenas.github.io/docco/
