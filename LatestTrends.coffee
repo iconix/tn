@@ -1,51 +1,59 @@
-http = require('http')
-mockIndexStream = require('./mockIndexStream')
+http = require 'http'
+require './mockIndexStream'
 
-indexStream = 'http://trendspottr.com/indexStream.php?q='
+class TrendingNews
 
-topics = [
-    'News'
-    'Technology'
-    'Content Marketing'
-    'Infographics'
-    'Economy'
-    'Sports'
-    'Pop Culture'
-    'Politics'
-    'Science'
-    'Celebrity'
-]
+    indexStream = 'http://trendspottr.com/indexStream.php?q='
 
-topTwtrLists = [
-    'https://twitter.com/Scobleizer/lists/tech-pundits'
-    'https://twitter.com/marshallk/lists/social-strategists'
-    'https://twitter.com/newscred/lists/content-leaders'
-    'https://twitter.com/BreakingNews/lists/breaking-news-sources'
-    'https://twitter.com/journalismnews/lists/social-media-journalism'
-    'https://twitter.com/nytimes/lists/nyt-journalists'
-    'https://twitter.com/cspan/lists/members-of-congress'
-    'https://twitter.com/AskAaronLee/lists/brands'
-    'https://twitter.com/eonline/lists/celebs-on-twitter'
-    'https://twitter.com/SInow/lists/si-twitter-100'
-    'https://twitter.com/getLittleBird/lists/business-finance'
-    #'https://twitter.com/AAPremlall/lists/women-to-follow-18'
-    'https://twitter.com/Jason_Pollock/lists/rising-stars'
-]
+    topics = [
+        'News'
+        'Technology'
+        'Content Marketing'
+        'Infographics'
+        'Economy'
+        'Sports'
+        'Pop Culture'
+        'Politics'
+        'Science'
+        'Celebrity'
+    ]
 
-getLatestTrends = (scoreThreshold = 100) ->
-    getTrendsForTopic t for t in topics
+    scoreThreshold = 0
 
-getTrendsForTopic = (topic) ->
-    http.get(indexStream+topic, (response) ->
-        str = ''
+    results = {}
 
-        response.on('data', (chunk) ->
-            str += chunk
+    constructor: (score = 100) ->
+        scoreThreshold = score
+
+    filterNewsByTrendScore = (allNewsItems) ->
+        allNewsItems.filter (item) -> item.trending_score >= scoreThreshold
+
+    getFilteredNewsForTopic = (topic, httpCallback) ->
+        http.get(indexStream+topic, (response) ->
+            data = ''
+
+            response.on('data', (chunk) ->
+                data += chunk
+            )
+
+            response.on('end', ->
+                allNewsItems = (JSON.parse(data)).link_list # strip topic name and status code
+                filteredItems = filterNewsByTrendScore allNewsItems
+                httpCallback topic,filteredItems
+            )
         )
 
-        response.on('end', ->
-            console.log(str)
-        )
-    )
+    resultsCallback = (topic, result) ->
+        # callback to provide access to results
 
-getLatestTrends()
+        results[topic] = result
+
+        if (Object.keys(results).length == topics.length)
+            console.log results
+
+    getLatestNews: ->
+        getFilteredNewsForTopic(topic, resultsCallback) for topic in topics
+
+
+trendingNews = new TrendingNews 80
+trendingNews.getLatestNews()
