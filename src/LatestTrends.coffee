@@ -1,5 +1,9 @@
+module.exports = TrendingNews
+
 http = require 'http'
-require './mockIndexStream'
+require '../libs/mockIndexStream'
+
+logger = require '../libs/logger'
 
 class TrendingNews
 
@@ -22,13 +26,19 @@ class TrendingNews
 
     results = {}
 
-    constructor: (score = 100) ->
+    constructor: (debugMode = false, score = 100) ->
+        logger.debugLevel = if debugMode then 'info' else 'warn'
         scoreThreshold = score
+
+        logger.log 'warn', 'debugMode is ' + debugMode
+        logger.log 'info', 'scoreThreshold = ' + scoreThreshold
 
     filterNewsByTrendScore = (allNewsItems) ->
         allNewsItems.filter (item) -> item.trending_score >= scoreThreshold
 
     getFilteredNewsForTopic = (topic, httpCallback) ->
+        logger.log 'info', 'Getting all news for topic: ' + topic + '...'
+
         http.get(indexStream+topic, (response) ->
             data = ''
 
@@ -38,9 +48,19 @@ class TrendingNews
 
             response.on('end', ->
                 allNewsItems = (JSON.parse(data)).link_list # strip topic name and status code
+                logger.log 'info', '# ' + topic + ' items before filter: ' + allNewsItems.length
+
                 filteredItems = filterNewsByTrendScore allNewsItems
+                logger.log 'info', '# ' + topic + ' items after filter: ' + filteredItems.length
+
                 httpCallback topic,filteredItems
             )
+
+            response.on('error', (e) ->
+                logger.log 'error', 'Problem with response for topic ' + topic + ': ' + e.message
+            )
+        ).on('error', (e) -> # on request error
+            logger.log 'error', 'Problem with request for topic ' + topic + ': ' + e.message
         )
 
     resultsCallback = (topic, result) ->
@@ -49,11 +69,12 @@ class TrendingNews
         results[topic] = result
 
         if (Object.keys(results).length == topics.length)
-            console.log results
+            logger.log 'warn', results
 
-    getLatestNews: ->
+    getLatest: ->
+        logger.log 'info', 'Getting latest trending news items for ' + topics.length + ' topics...'
         getFilteredNewsForTopic(topic, resultsCallback) for topic in topics
 
 
-trendingNews = new TrendingNews 80
-trendingNews.getLatestNews()
+trendingNews = new TrendingNews true, 80
+trendingNews.getLatest()

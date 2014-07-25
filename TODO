@@ -10,3 +10,6 @@
 
 [ ] Documentation generator
 	http://jashkenas.github.io/docco/
+
+[ ] Figure out how I want to log in production
+	Loggly (https://www.loggly.com/) + Winston (http://docs.nodejitsu.com/articles/intermediate/how-to-log) ?
