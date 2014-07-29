@@ -1,4 +1,6 @@
-[ ] Write unit tests using Jasmine
+[ ] Move this to Trello
+
+[x] Write unit tests using Jasmine
 	http://jasmine.github.io/
 
 [ ] Investigate Travis for automated testing, as suggested here: http://howtonode.org/http-mock-testing
@@ -13,3 +15,6 @@
 
 [ ] Figure out how I want to log in production
 	Loggly (https://www.loggly.com/) + Winston (http://docs.nodejitsu.com/articles/intermediate/how-to-log) ?
+	http://leanstack.io/log-management
+
+[ ] Look into automating tasks for building/testing/deploying, like Grunt (http://leanstack.io/javascript-build-tools)
