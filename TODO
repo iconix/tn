@@ -8,7 +8,10 @@
 
 [x] Made decision to keep each topic stream separate (combining results at the very end) - so continuing with:
 	[x] Filter by score
-	[ ] Redundancy check (persistent storage? https://github.com/simonlast/node-persist)
+	[x] Redundancy check (persistent storage? https://github.com/simonlast/node-persist)
+
+[ ] Hook up mobile notifications with Instapush
+	https://instapush.im/
 
 [ ] Documentation generator
 	http://jashkenas.github.io/docco/
@@ -16,5 +19,7 @@
 [ ] Figure out how I want to log in production
 	Loggly (https://www.loggly.com/) + Winston (http://docs.nodejitsu.com/articles/intermediate/how-to-log) ?
 	http://leanstack.io/log-management
+
+[ ] What should happen when exceptions are thrown? Currently, exceptions seem to corrupt the state of persistent storage
 
 [ ] Look into automating tasks for building/testing/deploying, like Grunt (http://leanstack.io/javascript-build-tools)

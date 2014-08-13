@@ -1,10 +1,13 @@
 http = require 'http'
+storage = require 'node-persist'
+
 logger = require '../libs/logger'
+hashCode = require '../libs/hashCode'
 require '../libs/mockIndexStream'
 
 class TrendingNews
 
-    INDEX_STREAM: 'http://trendspottr.com/indexStream.php?q=' # instance variable
+    INDEX_STREAM: 'http://trendspottr.com/indexStream.php?q=' # prototype prop
 
     TOPICS: [
         'News'
@@ -17,12 +20,13 @@ class TrendingNews
         'Politics'
         'Science'
         'Celebrity'
-    ] # instance variable
+    ] # prototype prop
 
+    @STORAGE_DIR: 'TNStorage' # class prop
 
-    results: {}
+    scoreThreshold = 100 # private var
 
-    constructor: (mode = '', @scoreThreshold = 100) ->
+    constructor: (mode = '', score = 100) ->
         if (mode == 'debug')
             logger.debugLevel = 'info'
 
@@ -30,15 +34,45 @@ class TrendingNews
             logger.debugLevel = 'error'
 
         logger.log 'warn', 'in ' + mode + 'Mode'
-        logger.log 'info', 'scoreThreshold = ' + @scoreThreshold
+
+        scoreThreshold = score
+        logger.log 'info', 'scoreThreshold = ' + scoreThreshold
+
+        @results = {}
 
     filterNewsByTrendScore = (allNewsItems) ->
         # private, anonymous function
 
         classObj = this
-        allNewsItems.filter (item) -> item.trending_score >= classObj.scoreThreshold
+        allNewsItems.filter (item) -> item.trending_score >= scoreThreshold
 
-    getFilteredNewsForTopic = (topic, httpCallback) ->
+    filterNewsIfSeenBefore = (newsItems) ->
+        # private, anonymous function that determines if a news item has ever been seen before
+        # by looking at its title
+
+        classObj = this
+        unseen = []
+
+        storage.initSync({
+            dir: TrendingNews.STORAGE_DIR
+        })
+
+        for item in newsItems
+            titleHash = hashCode.hash item.title
+            seenWhen = storage.getItem(titleHash)
+            logger.log 'info', storage.length() + ' ' + titleHash + ' ' + seenWhen
+
+            if (seenWhen == undefined)
+                unseen.push item
+                seenWhen = [ new Date(Date.now()) ]
+            else
+                seenWhen.push new Date(Date.now())
+
+            storage.setItem(titleHash, seenWhen)
+
+        return unseen
+
+    getFilteredNewsForTopic = (topic, successCallback) ->
         # private, anonymous function
 
         logger.log 'info', 'Getting all news for topic: ' + topic + '...'
@@ -59,7 +93,12 @@ class TrendingNews
                     filteredItems = filterNewsByTrendScore.call classObj, allNewsItems
                     logger.log 'info', '# ' + topic + ' items after filter: ' + filteredItems.length
 
-                    httpCallback.call classObj,topic,filteredItems
+                    unseenItems = filterNewsIfSeenBefore.call classObj, filteredItems
+                    logger.log 'info', '# ' + topic + ' items never seen before: ' + unseenItems.length
+
+                    logger.log 'info', '---'
+
+                    successCallback.call classObj,topic, unseenItems
                 else
                     classObj.handleBadResponse topic, response.statusCode
             )
@@ -87,18 +126,18 @@ class TrendingNews
 
     handleBadResponse: (topic, statusCode) ->
         # method (public)
-
+        
         logger.log 'error', 'Response with status code ' + statusCode + ' for topic ' + topic
 
     handleError: (topic, message, timeOfError) ->
         # method (public)
 
-        logger.log 'error', 'Problem with ' + timeOfError + ' for topic ' + topic + ': ' + message
+        logger.log 'error', 'Problem with ' + timeOfError + ' for topic ' + topic + '... ' + message
 
     getLatest: ->
         # method (public)
 
-        logger.log 'info', 'Getting latest trending news items for ' + @TOPICS.length + ' topics...'
+        logger.log 'info', 'Getting latest trending news items for ' + @TOPICS.length + ' topic(s)...'
         getFilteredNewsForTopic.call(this, topic, resultsCallback) for topic in @TOPICS
 
 
