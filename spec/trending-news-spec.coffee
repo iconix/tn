@@ -2,7 +2,7 @@
 
 nock = require 'nock'
 storage = require 'node-persist'
-TrendingNews = require '../src/trending-news'
+TrendingNews = require '../lib/trending-news'
 
 httpDelay = 1000 # artifical pause to verify asynchronicity
 TrendingNews.STORAGE_DIR = 'TestStorage'

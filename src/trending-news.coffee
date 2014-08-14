@@ -1,9 +1,9 @@
 http = require 'http'
 storage = require 'node-persist'
 
-logger = require '../libs/logger'
-hashCode = require '../libs/hashCode'
-require '../libs/mockIndexStream'
+logger = require '../lib/logger'
+hashCode = require '../lib/hashCode'
+require '../lib/mockIndexStream'
 
 class TrendingNews
 
@@ -140,8 +140,5 @@ class TrendingNews
         logger.log 'info', 'Getting latest trending news items for ' + @TOPICS.length + ' topic(s)...'
         getFilteredNewsForTopic.call(this, topic, resultsCallback) for topic in @TOPICS
 
-
-#trendingNews = new TrendingNews 'debug', 80
-#trendingNews.getLatest()
 
 module.exports = TrendingNews

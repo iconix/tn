@@ -22,4 +22,10 @@
 
 [ ] What should happen when exceptions are thrown? Currently, exceptions seem to corrupt the state of persistent storage
 
-[ ] Look into automating tasks for building/testing/deploying, like Grunt (http://leanstack.io/javascript-build-tools)
+[~] Look into automating tasks for building/testing/deploying, like Grunt (http://leanstack.io/javascript-build-tools)
+
+	http://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/
+
+	http://gruntjs.com/getting-started
+
+	package.json cheat sheet: http://browsenpm.org/package.json
