@@ -3,8 +3,10 @@
 [x] Write unit tests using Jasmine
 	http://jasmine.github.io/
 
-[ ] Investigate Travis for automated testing, as suggested here: http://howtonode.org/http-mock-testing
+[x] Investigate Travis for automated testing, as suggested here: http://howtonode.org/http-mock-testing
 	https://travis-ci.org/
+
+	http://relistan.com/coffeescript-testing-on-travis-ci/
 
 [x] Made decision to keep each topic stream separate (combining results at the very end) - so continuing with:
 	[x] Filter by score
