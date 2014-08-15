@@ -12,6 +12,14 @@
 	[x] Filter by score
 	[x] Redundancy check (persistent storage? https://github.com/simonlast/node-persist)
 
+[ ] Put code in a loop
+	[ ] Figure out how to call API 'responsibly' (rate limiting/how often should I poll?)
+	[ ] Figure out how to monitor this loop
+	
+	http://mcavage.me/node-restify/#client-api ?
+	http://nodejs.org/api/timers.html#timers_setinterval_callback_delay_arg ?
+	http://techoctave.com/c7/posts/60-simple-long-polling-example-with-javascript-and-jquery ?
+
 [ ] Hook up mobile notifications with Instapush
 	https://instapush.im/
 

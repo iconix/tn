@@ -4,8 +4,8 @@
   "description": "Get news, filter by score, push to phone",
   "main": "index.js",
   "scripts": {
-    "test": "grunt jasmine_node",
-    "install": "grunt coffee",
+    "test": "./node_modules/.bin/grunt jasmine_node",
+    "install": "./node_modules/.bin/grunt coffee",
     "start": "node index.js"
   },
   "repository": {
@@ -29,6 +29,7 @@
   "devDependencies": {
     "coffee-script": "~1.7.1",
     "grunt": "~0.4.5",
+    "grunt-cli": "~0.1.13",
     "grunt-contrib-coffee": "~0.11.0",
     "grunt-jasmine-node": "~0.2.1",
     "jasmine-node": "~1.14.5",
