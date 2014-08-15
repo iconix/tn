@@ -26,17 +26,24 @@ class TrendingNews
 
     scoreThreshold = 100 # private var
 
-    constructor: (mode = '', score = 100) ->
+    constructor: (mode = 'default', score = 100) ->
+        if (!mode)
+            mode = 'default'
+
+        if (!score)
+            score = 100
+
         if (mode == 'debug')
             logger.debugLevel = 'info'
-
-        if (mode == 'test')
+        else if (mode == 'test')
             logger.debugLevel = 'error'
+        else
+            mode = 'default'
 
         logger.log 'warn', 'in ' + mode + 'Mode'
 
         scoreThreshold = score
-        logger.log 'info', 'scoreThreshold = ' + scoreThreshold
+        logger.log 'warn', 'scoreThreshold = ' + scoreThreshold
 
         @results = {}
 
