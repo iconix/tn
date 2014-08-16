@@ -3,7 +3,7 @@ storage = require 'node-persist'
 
 logger = require '../lib/logger'
 hashCode = require '../lib/hashCode'
-require '../lib/mockIndexStream'
+#require '../lib/mockIndexStream'
 
 class TrendingNews
 

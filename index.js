@@ -7,20 +7,6 @@ var color = clc.redBright;
 var one = process.argv[2];
 var two = process.argv[3];
 
-var main = function() {
-  var areValidArgs = module.exports.validateArguments(one, two);
-
-  if (areValidArgs)
-  {
-    var trendingNews = new TrendingNews(one, two);
-    trendingNews.getLatest();
-  }
-}
-
-if (require.main === module) {
-  main();
-}
-
 module.exports.validateArguments = function(firstArg, secondArg) {
   var firstArgError = "'%s' must be 'debug', 'default', or 'test'!";
   var secondArgError = "'%s' must be a number from 1 to 100!";
@@ -81,4 +67,36 @@ module.exports.validateArguments = function(firstArg, secondArg) {
   }
 
   return true;
+}
+
+var main = function() {
+  var areValidArgs = module.exports.validateArguments(one, two);
+  var interval = 720000;
+
+  if (areValidArgs)
+  {
+    var trendingNews = new TrendingNews(one, two);
+    var isFinished;
+
+    console.log("Get latest at " + new Date(Date.now()));
+    trendingNews.getLatest();
+
+    var intervalObj = setInterval(function() {
+      trendingNews = new TrendingNews(one, two);
+      isFinished = false;
+      console.log("Get latest at " + new Date(Date.now()));
+      trendingNews.getLatest();
+    }, interval);
+
+    process.on('SIGINT', function() {
+      console.log("Shutting down process...")
+      // TODO check if getLatest is finished before exiting
+      clearInterval(intervalObj);
+      process.exit();
+    });
+  }
+}
+
+if (require.main === module) {
+  main();
 }
