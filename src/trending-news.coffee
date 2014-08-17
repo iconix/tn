@@ -3,11 +3,13 @@ storage = require 'node-persist'
 
 logger = require '../lib/logger'
 hashCode = require '../lib/hashCode'
-#require '../lib/mockIndexStream'
+require '../lib/mockIndexStream'
 
 class TrendingNews
 
-    INDEX_STREAM: 'http://trendspottr.com/indexStream.php?q=' # prototype prop
+    REQ_DOMAIN: 'trendspottr.com' # prototype prop
+    REQ_PATH: '/indexStream.php?q=' # prototype prop
+    INDEX_STREAM: 'http://trendspottr.com/indexStream.php?q='
 
     TOPICS: [
         'News'
@@ -67,7 +69,6 @@ class TrendingNews
         for item in newsItems
             titleHash = hashCode.hash item.title
             seenWhen = storage.getItem(titleHash)
-            logger.log 'info', storage.length() + ' ' + titleHash + ' ' + seenWhen
 
             if (seenWhen == undefined)
                 unseen.push item
@@ -85,7 +86,23 @@ class TrendingNews
         logger.log 'info', 'Getting all news for topic: ' + topic + '...'
         classObj = this
 
-        http.get(classObj.INDEX_STREAM+topic, (response) ->
+        options = {
+            hostname: classObj.REQ_DOMAIN
+            path: classObj.REQ_PATH + encodeURIComponent(topic)
+            headers: {
+                'Accept': '*/*'
+                'Accept-Encoding': 'gzip,deflate,sdch'
+                'Accept-Language': 'en-US,en;q=0.8'
+                'Cache-Control': 'max-age=0'
+                'Connection': 'keep-alive'
+                'DNT': '1'  
+                'Referer': 'http://trendspottr.com/'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36'
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }
+
+        req = http.get(options, (response) ->
             data = ''
 
             response.on('data', (chunk) ->
@@ -94,7 +111,13 @@ class TrendingNews
 
             response.on('end', ->
                 if (response.statusCode == 200)
-                    allNewsItems = (JSON.parse(data)).link_list # strip topic name and status code
+                    try
+                        data = JSON.parse(data)
+                    catch
+                        logger.log 'error', "Response '" + data + "' is not valid JSON!"
+                        data = {link_list: []}
+
+                    allNewsItems = data.link_list # strip topic name and status code
                     logger.log 'info', '# ' + topic + ' items before filter: ' + allNewsItems.length
 
                     filteredItems = filterNewsByTrendScore.call classObj, allNewsItems
@@ -116,6 +139,8 @@ class TrendingNews
         ).on('error', (e) -> # on request error
             classObj.handleError topic, e.message, 'request'
         )
+
+        console.log req
 
     resultsCallback = (topic, result) ->
         # private, anonymous callback to provide access to results

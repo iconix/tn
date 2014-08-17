@@ -94,6 +94,10 @@ var main = function() {
       clearInterval(intervalObj);
       process.exit();
     });
+
+    process.on('uncaughtException', function (err) {
+        console.error(color('Uncaught Exception...\n' + err.stack));
+    });
   }
 }
 

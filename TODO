@@ -1,4 +1,4 @@
-[ ] Move this to Trello
+[~] Move this to Trello
 
 [x] Write unit tests using Jasmine
 	http://jasmine.github.io/
@@ -14,7 +14,7 @@
 
 	Heroku's read-only filesystem: https://devcenter.heroku.com/articles/read-only-filesystem
 
-[ ] Put code in a loop
+[x] Put code in a loop
 	[ ] Figure out how to call API 'responsibly' (rate limiting/how often should I poll?)
 	[ ] Figure out how to monitor this loop
 	[ ] Safely stop the loop when desired
@@ -36,6 +36,8 @@
 	http://leanstack.io/log-management
 
 [ ] What should happen when exceptions are thrown? Currently, exceptions seem to corrupt the state of persistent storage
+	[x] Add code in main to catch all uncaught exceptions and log
+	[ ] Ensure persistent storage is not uncorrupted
 
 [~] Look into automating tasks for building/testing/deploying, like Grunt (http://leanstack.io/javascript-build-tools)
 
