@@ -9,7 +9,6 @@ class TrendingNews
 
     REQ_DOMAIN: 'trendspottr.com' # prototype prop
     REQ_PATH: '/indexStream.php?q=' # prototype prop
-    INDEX_STREAM: 'http://trendspottr.com/indexStream.php?q='
 
     TOPICS: [
         'News'
@@ -23,6 +22,8 @@ class TrendingNews
         'Science'
         'Celebrity'
     ] # prototype prop
+
+    IS_FINISHED: false # prototype prop
 
     @STORAGE_DIR: 'TNStorage' # class prop
 
@@ -102,7 +103,7 @@ class TrendingNews
             }
         }
 
-        req = http.get(options, (response) ->
+        http.get(options, (response) ->
             data = ''
 
             response.on('data', (chunk) ->
@@ -140,8 +141,6 @@ class TrendingNews
             classObj.handleError topic, e.message, 'request'
         )
 
-        console.log req
-
     resultsCallback = (topic, result) ->
         # private, anonymous callback to provide access to results
 
@@ -150,6 +149,7 @@ class TrendingNews
 
         if (Object.keys(classObj.results).length == classObj.TOPICS.length)
             classObj.handleResults classObj.results
+            classObj.IS_FINISHED = true
 
     handleResults: (res) ->
         # method (public)

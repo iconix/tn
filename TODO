@@ -17,7 +17,7 @@
 [x] Put code in a loop
 	[ ] Figure out how to call API 'responsibly' (rate limiting/how often should I poll?)
 	[ ] Figure out how to monitor this loop
-	[ ] Safely stop the loop when desired
+	[x] Safely stop the loop when desired
 			http://stackoverflow.com/questions/14372288/how-to-properly-handle-sigint-with-express-js
 	
 	http://mcavage.me/node-restify/#client-api ?
