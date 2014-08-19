@@ -69,13 +69,18 @@ class TrendingNews
 
         for item in newsItems
             titleHash = hashCode.hash item.title
+            logger.log 'debug', titleHash, item.title
             seenWhen = storage.getItem(titleHash)
 
             if (seenWhen == undefined)
                 unseen.push item
                 seenWhen = [ new Date(Date.now()) ]
             else
-                seenWhen.push new Date(Date.now())
+                try
+                    seenWhen.push new Date(Date.now())
+                catch TypeError
+                    logger.log 'warn', 'Problem persisting storage for item ' + titleHash + ' in a previous cycle - marking as seen'
+                    seenWhen = [ new Date(Date.now()) ]
 
             storage.setItem(titleHash, seenWhen)
 

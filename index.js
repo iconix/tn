@@ -97,7 +97,7 @@ var main = function() {
           clearInterval(intervalObj);
           process.exit();
         }
-      }, 0);
+      }, 1000);
     });
 
     process.on('uncaughtException', function (err) {
