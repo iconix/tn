@@ -1,2 +1,3 @@
 node_modules/
 lib/trending-news.js
+lib/config.js

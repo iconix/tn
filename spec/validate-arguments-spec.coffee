@@ -1,6 +1,6 @@
-validateArguments = require('../index').validateArguments
+validateArguments = require('../lib/validate-arguments')
 
-describe "Index", ->
+describe "validateArguments", ->
 
   it 'should ensure that the first arg is a valid string, and the second arg is a number 1..100 inclusive', ->
     # NOTE: parameters of validateArguments(...) come from command-line arguments,
@@ -14,7 +14,7 @@ describe "Index", ->
     expect(validateArguments('-1')).toBe(false)
     expect(validateArguments('101')).toBe(false)
 
-    expect(validateArguments('default')).toBe(true)
+    expect(validateArguments('prod')).toBe(true)
     expect(validateArguments('')).toBe(true)
     expect(validateArguments('  ')).toBe(false)
     expect(validateArguments('what?')).toBe(false)

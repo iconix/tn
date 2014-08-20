@@ -2,32 +2,23 @@ http = require 'http'
 storage = require 'node-persist'
 
 logger = require '../lib/logger'
-hashCode = require '../lib/hashCode'
-require '../lib/mockIndexStream'
+hashCode = require '../lib/hash-code'
+config = require '../lib/config'
+require '../lib/mock-index-stream'
 
 class TrendingNews
 
-    REQ_DOMAIN: 'trendspottr.com' # prototype prop
-    REQ_PATH: '/indexStream.php?q=' # prototype prop
-
-    TOPICS: [
-        'News'
-        'Technology'
-        'Content Marketing'
-        'Infographics'
-        'Economy'
-        'Sports'
-        'Pop Culture'
-        'Politics'
-        'Science'
-        'Celebrity'
-    ] # prototype prop
-
-    IS_FINISHED: false # prototype prop
-
-    @STORAGE_DIR: 'TNStorage' # class prop
-
     scoreThreshold = 100 # private var
+    results = null # private var
+    finished = false # private var
+
+    # prototype method
+    getResults: () ->
+        return results
+
+    # prototype method
+    isFinished: () ->
+        return finished
 
     constructor: (mode = 'default', score = 100) ->
         if (!mode)
@@ -40,36 +31,40 @@ class TrendingNews
             logger.debugLevel = 'info'
         else if (mode == 'test')
             logger.debugLevel = 'error'
+        else if (mode == 'prod')
+            logger.debugLevel = 'info'
         else
             mode = 'default'
 
-        logger.log 'warn', 'in ' + mode + 'Mode'
+        if (mode == 'prod')
+            process.env.NOCK_OFF = true
+            logger.log 'warn', 'Nock is OFF!'
+        else
+            logger.log 'warn', 'Nock is ON'
+
+        logger.log 'warn', 'in ' + mode + 'Mode (lowest log level: ' + logger.debugLevel + ')'
 
         scoreThreshold = score
         logger.log 'warn', 'scoreThreshold = ' + scoreThreshold
 
-        @results = {}
-
     filterNewsByTrendScore = (allNewsItems) ->
         # private, anonymous function
 
-        classObj = this
         allNewsItems.filter (item) -> item.trending_score >= scoreThreshold
 
     filterNewsIfSeenBefore = (newsItems) ->
         # private, anonymous function that determines if a news item has ever been seen before
         # by looking at its title
 
-        classObj = this
         unseen = []
 
         storage.initSync({
-            dir: TrendingNews.STORAGE_DIR
+            dir: config.STORAGE_DIR
         })
 
         for item in newsItems
             titleHash = hashCode.hash item.title
-            logger.log 'debug', titleHash, item.title
+            logger.log 'info', titleHash, item.title
             seenWhen = storage.getItem(titleHash)
 
             if (seenWhen == undefined)
@@ -86,26 +81,16 @@ class TrendingNews
 
         return unseen
 
-    getFilteredNewsForTopic = (topic, successCallback) ->
+    getLatestNewsForTopic = (topic, successCallback) ->
         # private, anonymous function
 
         logger.log 'info', 'Getting all news for topic: ' + topic + '...'
         classObj = this
 
         options = {
-            hostname: classObj.REQ_DOMAIN
-            path: classObj.REQ_PATH + encodeURIComponent(topic)
-            headers: {
-                'Accept': '*/*'
-                'Accept-Encoding': 'gzip,deflate,sdch'
-                'Accept-Language': 'en-US,en;q=0.8'
-                'Cache-Control': 'max-age=0'
-                'Connection': 'keep-alive'
-                'DNT': '1'  
-                'Referer': 'http://trendspottr.com/'
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36'
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            hostname: config.REQUEST_HOSTNAME
+            path: config.REQUEST_PATH + encodeURIComponent(topic)
+            headers: config.REQUEST_HEADERS
         }
 
         http.get(options, (response) ->
@@ -119,22 +104,22 @@ class TrendingNews
                 if (response.statusCode == 200)
                     try
                         data = JSON.parse(data)
-                    catch
+                    catch SyntaxError
                         logger.log 'error', "Response '" + data + "' is not valid JSON!"
                         data = {link_list: []}
 
                     allNewsItems = data.link_list # strip topic name and status code
                     logger.log 'info', '# ' + topic + ' items before filter: ' + allNewsItems.length
 
-                    filteredItems = filterNewsByTrendScore.call classObj, allNewsItems
+                    filteredItems = filterNewsByTrendScore allNewsItems
                     logger.log 'info', '# ' + topic + ' items after filter: ' + filteredItems.length
 
-                    unseenItems = filterNewsIfSeenBefore.call classObj, filteredItems
+                    unseenItems = filterNewsIfSeenBefore filteredItems
                     logger.log 'info', '# ' + topic + ' items never seen before: ' + unseenItems.length
 
                     logger.log 'info', '---'
 
-                    successCallback.call classObj,topic, unseenItems
+                    successCallback.call classObj, topic, unseenItems
                 else
                     classObj.handleBadResponse topic, response.statusCode
             )
@@ -150,11 +135,11 @@ class TrendingNews
         # private, anonymous callback to provide access to results
 
         classObj = this
-        classObj.results[topic] = result
+        results[topic] = result
 
-        if (Object.keys(classObj.results).length == classObj.TOPICS.length)
-            classObj.handleResults classObj.results
-            classObj.IS_FINISHED = true
+        if (Object.keys(results).length == config.TOPICS.length)
+            classObj.handleResults results
+            finished = true
 
     handleResults: (res) ->
         # method (public)
@@ -174,8 +159,10 @@ class TrendingNews
     getLatest: ->
         # method (public)
 
-        logger.log 'info', 'Getting latest trending news items for ' + @TOPICS.length + ' topic(s)...'
-        getFilteredNewsForTopic.call(this, topic, resultsCallback) for topic in @TOPICS
+        results = {}
+
+        logger.log 'info', 'Getting latest trending news items for ' + config.TOPICS.length + ' topic(s)...'
+        getLatestNewsForTopic.call(this, topic, resultsCallback) for topic in config.TOPICS
 
 
 module.exports = TrendingNews

@@ -3,9 +3,10 @@
 nock = require 'nock'
 storage = require 'node-persist'
 TrendingNews = require '../lib/trending-news'
+config = require '../lib/config'
 
 httpDelay = 1000 # artifical pause to verify asynchronicity
-TrendingNews.STORAGE_DIR = 'TestStorage'
+config.STORAGE_DIR = 'TestStorage'
 
 describe "TrendingNews (basic tests)", ->
 
@@ -45,7 +46,7 @@ describe "TrendingNews (basic tests)", ->
 
     # given
     newsInstance = new TrendingNews 'test'
-    newsInstance.TOPICS = ['Basic']
+    config.TOPICS = ['Basic']
 
     # when
     newsInstance.getLatest()
@@ -53,56 +54,70 @@ describe "TrendingNews (basic tests)", ->
     # then
     spyOn(newsInstance, 'handleResults').andCallFake(() ->
       expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.results.Basic.length).toEqual(1)
+      expect(newsInstance.getResults().Basic.length).toEqual(1)
       done()
     )
 
   it 'should call available news api and find 3 news items with score >= 50', (done) ->
 
     newsInstance = new TrendingNews 'test', 50
-    newsInstance.TOPICS = ['Basic']
+    config.TOPICS = ['Basic']
 
     newsInstance.getLatest()
 
     spyOn(newsInstance, 'handleResults').andCallFake(() ->
       expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.results.Basic.length).toEqual(3)
+      expect(newsInstance.getResults().Basic.length).toEqual(3)
       done()
     )
 
   it 'should handle call to available news api that has 0 news items', (done) ->
 
     newsInstance = new TrendingNews 'test', 50
-    newsInstance.TOPICS = ['Empty']
+    config.TOPICS = ['Empty']
 
     newsInstance.getLatest()
 
     spyOn(newsInstance, 'handleResults').andCallFake(() ->
       expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.results.Empty.length).toEqual(0)
+      expect(newsInstance.getResults().Empty.length).toEqual(0)
       done()
     )
 
 describe "TrendingNews (tests for when things go wrong)", ->
 
   newsInstance = new TrendingNews 'test'
-  newsInstance.TOPICS = ['Error']
 
   nock('http://trendspottr.com:80')
     .get('/indexStream.php?q=Error')
     .delayConnection(httpDelay)
     .reply(404)
+    .get('/indexStream.php?q=NotJson')
+    .delayConnection(httpDelay)
+    .reply(200, 'Status OK, but not a JSON response.',
+      { 'cache-control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0',
+      'content-type': 'text/plain',
+      date: 'Mon, 21 Jul 2014 05:23:07 GMT',
+      expires: 'Thu, 19 Nov 1981 08:52:00 GMT',
+      pragma: 'no-cache',
+      server: 'Apache/2.2.27 (Amazon)',
+      'set-cookie': [ 'PHPSESSID=0vsiddnoalg0u5t7dkff1lf381; path=/' ],
+      'x-powered-by': 'PHP/5.3.14 ZendServer/5.0',
+      'transfer-encoding': 'chunked',
+      connection: 'keep-alive' })
 
   afterEach ->
     storage.clear()
 
   it 'should handle news api that cannot be found (404)', (done) ->
 
+    config.TOPICS = ['Error']
+
     newsInstance.getLatest()
 
     spyOn(newsInstance, 'handleBadResponse').andCallFake(() ->
       expect(newsInstance.handleBadResponse).toHaveBeenCalled()
-      expect(Object.keys(newsInstance.results).length).toEqual(0)
+      expect(Object.keys(newsInstance.getResults()).length).toEqual(0)
       done()
     )
 
@@ -113,7 +128,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
         .toHaveBeenCalledWith('Error', 'Nock: No match for request GET http://trendspottr.com/indexStream.php?q=Error ', 'request')
-      expect(Object.keys(newsInstance.results).length).toEqual(0)
+      expect(Object.keys(newsInstance.getResults()).length).toEqual(0)
       done()
     )
 
@@ -124,6 +139,18 @@ describe "TrendingNews (tests for when things go wrong)", ->
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
         .toHaveBeenCalledWith('Test', 'Nock: No match for request GET http://trendspottr.com/indexStream.php?q=Error ', 'response')
+      done()
+    )
+
+  it 'should handle news api that does not return JSON', (done) ->
+
+    config.TOPICS = ['NotJson']
+
+    newsInstance.getLatest()
+
+    spyOn(newsInstance, 'handleResults').andCallFake(() ->
+      expect(newsInstance.handleResults).toHaveBeenCalled()
+      expect(newsInstance.getResults().NotJson.length).toEqual(0)
       done()
     )
 
@@ -164,7 +191,7 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
   it 'should call news api twice with same items and store exactly one copy of each item', (done) ->
 
     newsInstance = new TrendingNews 'test', 50
-    newsInstance.TOPICS = ['Seen']
+    config.TOPICS = ['Seen']
     numCalls = 0
 
     newsInstance.getLatest()
@@ -174,10 +201,10 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
       expect(newsInstance.handleResults).toHaveBeenCalled()
 
       if (numCalls == 0)
-        expect(newsInstance.results.Seen.length).toEqual(3)
+        expect(newsInstance.getResults().Seen.length).toEqual(3)
       
       if (numCalls == 1)
-        expect(newsInstance.results.Seen.length).toEqual(0)
+        expect(newsInstance.getResults().Seen.length).toEqual(0)
 
       numCalls++
 
@@ -187,13 +214,13 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
   it 'should call news api with duplicate news item and store exactly one copy of item', (done) ->
 
     newsInstance = new TrendingNews 'test'
-    newsInstance.TOPICS = ['Duplicate']
+    config.TOPICS = ['Duplicate']
 
     newsInstance.getLatest()
 
     spyOn(newsInstance, "handleResults").andCallFake((res) ->
       expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.results.Duplicate.length).toEqual(1)
+      expect(newsInstance.getResults().Duplicate.length).toEqual(1)
       done()
     )
     
