@@ -64,7 +64,7 @@ class TrendingNews
 
         for item in newsItems
             titleHash = hashCode.hash item.title
-            logger.log 'info', titleHash, item.title
+            logger.log 'info', titleHash + ', ' + item.title
             seenWhen = storage.getItem(titleHash)
 
             if (seenWhen == undefined)

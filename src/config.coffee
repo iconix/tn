@@ -9,7 +9,6 @@ define = (name, value, isWritable) ->
 define 'TOPICS', [
     'News'
     'Technology'
-    'Content Marketing'
     'Infographics'
     'Economy'
     'Sports'
