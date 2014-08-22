@@ -52,9 +52,9 @@ describe "TrendingNews (basic tests)", ->
     newsInstance.getLatest()
 
     # then
-    spyOn(newsInstance, 'handleResults').andCallFake(() ->
-      expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.getResults().Basic.length).toEqual(1)
+    spyOn(newsInstance, 'logResults').andCallFake(() ->
+      expect(newsInstance.logResults).toHaveBeenCalled()
+      expect(newsInstance.results.Basic.length).toEqual(1)
       done()
     )
 
@@ -65,9 +65,9 @@ describe "TrendingNews (basic tests)", ->
 
     newsInstance.getLatest()
 
-    spyOn(newsInstance, 'handleResults').andCallFake(() ->
-      expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.getResults().Basic.length).toEqual(3)
+    spyOn(newsInstance, 'logResults').andCallFake(() ->
+      expect(newsInstance.logResults).toHaveBeenCalled()
+      expect(newsInstance.results.Basic.length).toEqual(3)
       done()
     )
 
@@ -78,9 +78,9 @@ describe "TrendingNews (basic tests)", ->
 
     newsInstance.getLatest()
 
-    spyOn(newsInstance, 'handleResults').andCallFake(() ->
-      expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.getResults().Empty.length).toEqual(0)
+    spyOn(newsInstance, 'logResults').andCallFake(() ->
+      expect(newsInstance.logResults).toHaveBeenCalled()
+      expect(newsInstance.results.Empty.length).toEqual(0)
       done()
     )
 
@@ -117,7 +117,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'handleBadResponse').andCallFake(() ->
       expect(newsInstance.handleBadResponse).toHaveBeenCalled()
-      expect(Object.keys(newsInstance.getResults()).length).toEqual(0)
+      expect(Object.keys(newsInstance.results).length).toEqual(0)
       done()
     )
 
@@ -128,7 +128,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
         .toHaveBeenCalledWith('Error', 'Nock: No match for request GET http://trendspottr.com/indexStream.php?q=Error ', 'request')
-      expect(Object.keys(newsInstance.getResults()).length).toEqual(0)
+      expect(Object.keys(newsInstance.results).length).toEqual(0)
       done()
     )
 
@@ -148,9 +148,9 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     newsInstance.getLatest()
 
-    spyOn(newsInstance, 'handleResults').andCallFake(() ->
-      expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.getResults().NotJson.length).toEqual(0)
+    spyOn(newsInstance, 'logResults').andCallFake(() ->
+      expect(newsInstance.logResults).toHaveBeenCalled()
+      expect(newsInstance.results.NotJson.length).toEqual(0)
       done()
     )
 
@@ -197,14 +197,14 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
     newsInstance.getLatest()
     newsInstance.getLatest()
 
-    spyOn(newsInstance, "handleResults").andCallFake((res) ->
-      expect(newsInstance.handleResults).toHaveBeenCalled()
+    spyOn(newsInstance, "logResults").andCallFake((res) ->
+      expect(newsInstance.logResults).toHaveBeenCalled()
 
       if (numCalls == 0)
-        expect(newsInstance.getResults().Seen.length).toEqual(3)
+        expect(newsInstance.results.Seen.length).toEqual(3)
       
       if (numCalls == 1)
-        expect(newsInstance.getResults().Seen.length).toEqual(0)
+        expect(newsInstance.results.Seen.length).toEqual(0)
 
       numCalls++
 
@@ -218,9 +218,9 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
 
     newsInstance.getLatest()
 
-    spyOn(newsInstance, "handleResults").andCallFake((res) ->
-      expect(newsInstance.handleResults).toHaveBeenCalled()
-      expect(newsInstance.getResults().Duplicate.length).toEqual(1)
+    spyOn(newsInstance, "logResults").andCallFake((res) ->
+      expect(newsInstance.logResults).toHaveBeenCalled()
+      expect(newsInstance.results.Duplicate.length).toEqual(1)
       done()
     )
     

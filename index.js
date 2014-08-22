@@ -13,7 +13,7 @@ var addProcessListeners = function() {
       
       // non-blocking check if getLatest is finished processing all topics before exiting
       setInterval(function() {
-        if (trendingNews.isFinished())
+        if (trendingNews.finished)
         {
           clearInterval(callRateIntervalObj);
           process.exit();
