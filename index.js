@@ -27,13 +27,13 @@ var addProcessListeners = function() {
 }
 
 var executeMainLoop = function() {
-  trendingNews = new TrendingNews(one, two);
+  trendingNews = new TrendingNews(UserInputOne, UserInputTwo);
   console.log("Get latest at " + new Date(Date.now()));
   trendingNews.getLatest();
 }
 
 var main = function() {
-  var areValidArgs = validateArguments(one, two);
+  var areValidArgs = validateArguments(UserInputOne, UserInputTwo);
 
   if (areValidArgs)
   {

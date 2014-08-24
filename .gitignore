@@ -1,3 +1,11 @@
-node_modules/
+node_modules/*
+!node_modules/grunt-jsdoc
+node_modules/grunt-jsdoc/*
+!node_modules/grunt-jsdoc/node_modules
+node_modules/grunt-jsdoc/node_modules/*
+!node_modules/grunt-jsdoc/node_modules/jsdoc
+node_modules/grunt-jsdoc/node_modules/jsdoc/*
+!node_modules/grunt-jsdoc/node_modules/jsdoc/conf.json
+
 lib/trending-news.js
 lib/config.js

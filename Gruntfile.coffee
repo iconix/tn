@@ -13,8 +13,15 @@ module.exports = (grunt) ->
         includeStackTrace: true
         captureExceptions: true
       all: ['spec/']
+    jsdoc:
+      dist:
+        src: ['index.js', 'lib', 'README.md']
+        options:
+          configure: './node_modules/grunt-jsdoc/node_modules/jsdoc/conf.json'
+          private: false
   
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-jasmine-node'
+  grunt.loadNpmTasks 'grunt-jsdoc'
   
-  grunt.registerTask 'default', ['coffee', 'jasmine_node']
+  grunt.registerTask 'default', ['coffee', 'jasmine_node', 'jsdoc']

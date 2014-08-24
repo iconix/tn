@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>TrendingNews Modules</title>
+	<title>TrendingNews Source: hash-code.js</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -108,99 +108,40 @@
 	<div class="row-fluid">
 
 		
-		<div class="span8">
-			
+			<div class="span12">
+				
 				<div id="main">
 					
 
 
-	<h1 class="page-title">Modules</h1>
+		<h1 class="page-title">Source: hash-code.js</h1>
+    
 <section>
+	<article>
+		<pre
+			class="sunlight-highlight-javascript linenums">/** 
+  * A module to create unique hashes out of news article title strings
+  * [modified from original author]
+  *
+  * @module hash-code
+  * @author esmiralha, [Stack Overflow: Generate a hash from string in JavaScript]{@link http://stackoverflow.com/a/7616484}
+*/
+var hashCode = exports;
 
-<header>
-    <h2>
-    
-    </h2>
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-
-    
-        
-
-        
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="TrendingNews.html">TrendingNews</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-        <h3 class="subsection-title">Namespaces</h3>
-
-        <dl>
-            <dt><a href="namespaces.html#config"><a href="config.html">config</a></a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
+hashCode.hash = function(str) {
+  var hash = 0, i, chr, len;
+  if (str.length == 0) return hash;
+  for (i = 0, len = str.length; i &lt; len; i++) {
+    chr   = str.charCodeAt(i);
+    hash  = ((hash &lt;&lt; 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return String(hash);
+};
+</pre>
+	</article>
 </section>
+
 
 
 
@@ -219,10 +160,6 @@
 				</footer>
 			</div>
 
-			
-			<div class="span3">
-				<div id="toc"></div>
-			</div>
 			
 			<br clear="both">
 		</div>

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>TrendingNews Modules</title>
+	<title>TrendingNews Source: logger.js</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -108,99 +108,62 @@
 	<div class="row-fluid">
 
 		
-		<div class="span8">
-			
+			<div class="span12">
+				
 				<div id="main">
 					
 
 
-	<h1 class="page-title">Modules</h1>
+		<h1 class="page-title">Source: logger.js</h1>
+    
 <section>
+	<article>
+		<pre
+			class="sunlight-highlight-javascript linenums">/** 
+  * A module for logging with 3 levels: info (white), warn (yellow), error (red)
+  * [modified from original author]
+  *
+  * @module logger
+  * @author Josh Holbrook, [Nodejitsu: How to log in node.js]{@link http://docs.nodejitsu.com/articles/intermediate/how-to-log}
+  * @requires cli-color
+*/
+var logger = exports;
 
-<header>
-    <h2>
-    
-    </h2>
-    
-</header>
+var clc = require('cli-color');
 
-<article>
-    <div class="container-overview">
-    
+logger.debugLevel = 'warn';
 
-    
-        
+logger.log = function(level, message) {
+  var levels = ['error', 'warn', 'info'];
 
-        
-<dl class="details">
-	
+  var color;
+  switch (level)
+  {
+    case 'error':
+      color = clc.redBright;
+      break;
+    case 'warn':
+      color = clc.yellow;
+      break;
+    default:
+      color = clc.white;
+  }
 
-	
+  if (levels.indexOf(level) &lt;= levels.indexOf(logger.debugLevel) ) {
 
-	
+    if (typeof message !== 'string') {
+      console.log(color(level+': JSON...'));
+      console.log(message);
+    } else {
+      console.log(color(level+': '+message));
+    }
 
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="TrendingNews.html">TrendingNews</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-        <h3 class="subsection-title">Namespaces</h3>
-
-        <dl>
-            <dt><a href="namespaces.html#config"><a href="config.html">config</a></a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
+  }
+}
+</pre>
+	</article>
 </section>
+
 
 
 
@@ -219,10 +182,6 @@
 				</footer>
 			</div>
 
-			
-			<div class="span3">
-				<div id="toc"></div>
-			</div>
 			
 			<br clear="both">
 		</div>

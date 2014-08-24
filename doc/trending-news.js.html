@@ -1,31 +1,125 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Source: trending-news.js</title>
+	<meta charset="utf-8">
+	<title>TrendingNews Source: trending-news.js</title>
 
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
+
 </head>
 
 <body>
+<div class="container-fluid">
+	<div class="navbar navbar-fixed-top navbar-inverse">
+		<div class="navbar-inner">
+			<a class="brand" href="index.html">TrendingNews</a>
+			<ul class="nav">
+				
+				<li class="dropdown">
+					<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b
+						class="caret"></b></a>
 
-<div id="main">
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="config.html">config</a>
+						</li>
+						
 
-    <h1 class="page-title">Source: trending-news.js</h1>
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b
+						class="caret"></b></a>
 
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="module-config.html">config</a>
+						</li>
+						
+						<li>
+							<a href="module-hash-code.html">hash-code</a>
+						</li>
+						
+						<li>
+							<a href="module-logger.html">logger</a>
+						</li>
+						
+						<li>
+							<a href="module-mock-index-stream.html">mock-index-stream</a>
+						</li>
+						
+						<li>
+							<a href="module-trending-news.html">trending-news</a>
+						</li>
+						
+						<li>
+							<a href="module-validate-arguments.html">validate-arguments</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="TrendingNews.html">TrendingNews</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="global.html#UserInputOne">UserInputOne</a>
+						</li>
+						
+						<li>
+							<a href="global.html#UserInputTwo">UserInputTwo</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+			</ul>
+		</div>
+	</div>
+
+	<div class="row-fluid">
+
+		
+			<div class="span12">
+				
+				<div id="main">
+					
+
+
+		<h1 class="page-title">Source: trending-news.js</h1>
     
-
-
-    
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>(function() {
+<section>
+	<article>
+		<pre
+			class="sunlight-highlight-javascript linenums">(function() {
   var TrendingNews, config, hashCode, http, logger, storage;
 
   http = require('http');
@@ -42,17 +136,24 @@
 
 
   /**
-    * @class TrendingNews
     * @classdesc Gets up-to-date, trending news
     *
-    * @example How to create class instance, method 1
+    * @param [runMode='default'] {string} determines logging level and whether to use Nock
+    * @param [scoreThreshold=100] {number} lowest allowed trending score for any news item
+    *
+    * @example How to create an instance, method(1)
     *   new TrendingNews(runMode, scoreThreshold)
     *
-    * @example How to create class instance, method 2
+    * @example How to create an instance, method(2)
     *   new TrendingNews(runMode)
     *
-    * @example How to create class instance, method 3
+    * @example How to create an instance, method(3)
     *   new TrendingNews(scoreThreshold)
+    *
+    * @property {object} results - latest news results [readonly]
+    * @property {boolean} finished - if class instance is done processing [readonly]
+    *
+    * @class TrendingNews
    */
 
   TrendingNews = (function() {
@@ -78,15 +179,9 @@
       return _results;
     };
 
-
-    /** @private */
-
     scoreThreshold = 100;
 
     results = null;
-
-
-    /** @property {Object} latest news results */
 
     get({
       results: function() {
@@ -96,9 +191,6 @@
 
     finished = false;
 
-
-    /** @property {Boolean} if instance is done processing */
-
     get({
       finished: function() {
         return finished;
@@ -107,24 +199,8 @@
 
 
     /**
+      * @description Constructs a new framework for getting news
       * @constructs TrendingNews
-      * @classdesc Constructs a new framework for getting news
-      *
-      * @overload TrendingNews(mode, score)
-      *   @note Mode should equal 'debug', 'default', 'test', or 'prod'
-      *   @note Score should be from 1 to 100 (inclusive)
-      *   @param mode {String} determines logging level and whether to use Nock
-      *   @param score {Number} lowest allowed trending score for any news item
-      *
-      * @overload TrendingNews(mode)
-      *   @note Mode should equal 'debug', 'default', 'test', or 'prod'
-      *   @note Score will default to 100
-      *   @param mode {String} determines logging level and whether to use Nock
-      *
-      * @overload TrendingNews(score)
-      *   @note Score should be from 1 to 100 (inclusive)
-      *   @note Mode will default to 'default'
-      *   @param score {Number} lowest allowed trending score for any news item
      */
 
     function TrendingNews(mode, score) {
@@ -162,12 +238,14 @@
 
 
     /**
-      * @method filterNewsByTrendScore
       * @description Removes news items that fall below the trending score threshold
       *
       * @param newsItems {Array&lt;Object>} list of news items to filter
       * @return {Array&lt;Object>} list of news items, filtered by trending score
       *
+      * @method filterNewsByTrendScore
+      * @memberof TrendingNews
+      * @instance
       * @private
      */
 
@@ -179,12 +257,14 @@
 
 
     /**
-      * @method filterNewsIfSeenBefore
       * @description Removes news items that have been seen before, determined by a hash of its title
       *
       * @param newsItems {Array&lt;Object>} list of news items to filter
       * @return {Array&lt;Object>} list of news items, filtered by seen before status
       *
+      * @method filterNewsIfSeenBefore
+      * @memberof TrendingNews
+      * @instance
       * @private
      */
 
@@ -218,12 +298,14 @@
 
 
     /**
-      * @method getLatestNewsForTopic
       * @description Makes get call to an API for news about a topic
       *
       * @param topic {String} topic to get news about
       * @param successCallback {Function} function to call on the success of request
       *
+      * @method getLatestNewsForTopic
+      * @memberof TrendingNews
+      * @instance
       * @private
      */
 
@@ -276,13 +358,15 @@
 
 
     /**
-      * @method resultsCallback
       * @description Stores the resulting news items of a topic.
       * Waits for the results for all topics before handling
       *
       * @param topic {String} topic to get news about
       * @param result {Array&lt;Object>} 
       *
+      * @callback TrendingNews~resultsCallback
+      * @memberof TrendingNews
+      * @instance
       * @private
      */
 
@@ -298,13 +382,14 @@
 
 
     /**
-      * @method logResults
       * @description Logs results of processing
-      * @note logs with level 'warn'
+      * Logs with level 'warn', public to allow for unit testing, although marked 'private'
       *
       * @param res {Object} results to log
       *
-      * @note public to allow for unit testing, although marked 'private'
+      * @method logResults
+      * @memberof TrendingNews
+      * @instance
       * @private
      */
 
@@ -314,13 +399,15 @@
 
 
     /**
-      * @method handleBadResponse
-      * @description Logs errors that occur due to a 'bad' response status code
+      * @description Logs errors that occur due to a 'bad' response status code.
+      * Public to allow for unit testing, although marked 'private'
       *
       * @param topic {String} topic with bad response status code
       * @param statusCode {Number} bad response status code
       *
-      * @note public to allow for unit testing, although marked 'private'
+      * @method handleBadResponse
+      * @memberof TrendingNews
+      * @instance
       * @private
      */
 
@@ -330,14 +417,16 @@
 
 
     /**
-      * @method handleError
-      * @description Logs errors that occur due to a bad request or response
+      * @description Logs errors that occur due to a bad request or response.
+      * Public to allow for unit testing, although marked 'private'
       *
       * @param topic {String} topic being processed during error
       * @param message {String} error message
       * @param httpObjType {String} request or response, depending on when error occurred
       *
-      * @note public to allow for unit testing, although marked 'private'
+      * @method handleError
+      * @memberof TrendingNews
+      * @instance
       * @private
      */
 
@@ -347,8 +436,11 @@
 
 
     /**
+      * @description Processes every news topic in an asynchronous manner
+      *
       * @method getLatest
-      * @description Starts processing each news topic (asynchronous)
+      * @memberof TrendingNews
+      * @instance
      */
 
     TrendingNews.prototype.getLatest = function() {
@@ -368,29 +460,114 @@
 
   })();
 
+
+  /** 
+    * A module for the {@link TrendingNews} class
+    * @module trending-news
+    *
+    * @requires logger
+    * @requires hash-code
+    * @requires config
+    * @requires mock-index-stream
+   */
+
   module.exports = TrendingNews;
 
 }).call(this);
-</code></pre>
-        </article>
-    </section>
+</pre>
+	</article>
+</section>
 
 
 
 
-</div>
 
-<nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="TrendingNews.html">TrendingNews</a></li></ul><h3>Global</h3><ul><li><a href="global.html#getLatest">getLatest</a></li></ul>
-</nav>
+				</div>
 
-<br clear="both">
+				<div class="clearfix"></div>
+				<footer>
+					
+					
+		<span class="jsdoc-message">
+		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a>
+		on Sun Aug 24th 2014 10:48 am using the <a
+			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		</span>
+				</footer>
+			</div>
 
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Sat Aug 23 2014 21:15:48 GMT-0700 (PDT)
-</footer>
+			
+			<br clear="both">
+		</div>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+	</div>
+	<!--<script src="scripts/sunlight.js"></script>-->
+	<script src="scripts/docstrap.lib.js"></script>
+	<script src="scripts/bootstrap-dropdown.js"></script>
+	<script src="scripts/toc.js"></script>
+
+	<script>
+		$( function () {
+			$( "[id*='$']" ).each( function () {
+				var $this = $( this );
+
+				$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+			} );
+
+			$( "#toc" ).toc( {
+				anchorName  : function ( i, heading, prefix ) {
+					return $( heading ).attr( "id" ) || ( prefix + i );
+				},
+				selectors   : "h1,h2,h3,h4",
+				showAndHide : false,
+				scrollTo    : "100px"
+			} );
+
+			$( "#toc>ul" ).addClass( "nav nav-pills nav-stacked" );
+			$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+			$( '.dropdown-toggle' ).dropdown();
+//			$( ".tutorial-section pre, .readme-section pre" ).addClass( "sunlight-highlight-javascript" ).addClass( "linenums" );
+
+			$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+				var $this = $( this );
+
+				var example = $this.find( "code" );
+				exampleText = example.html();
+				var lang = /{@lang (.*?)}/.exec( exampleText );
+				if ( lang && lang[1] ) {
+					exampleText = exampleText.replace( lang[0], "" );
+					example.html( exampleText );
+					lang = lang[1];
+				} else {
+					lang = "javascript";
+				}
+
+				if ( lang ) {
+
+					$this
+						.addClass( "sunlight-highlight-" + lang )
+						.addClass( "linenums" )
+						.html( example.html() );
+
+				}
+			} );
+
+			Sunlight.highlightAll( {
+				lineNumbers : true,
+				showMenu : true,
+				enableDoclinks : true
+			} );
+		} );
+	 </script>
+
+
+
+	<!--Navigation and Symbol Display-->
+	
+
+
+	<!--Google Analytics-->
+	
+
 </body>
 </html>

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>TrendingNews Modules</title>
+	<title>TrendingNews Source: validate-arguments.js</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -108,99 +108,117 @@
 	<div class="row-fluid">
 
 		
-		<div class="span8">
-			
+			<div class="span12">
+				
 				<div id="main">
 					
 
 
-	<h1 class="page-title">Modules</h1>
+		<h1 class="page-title">Source: validate-arguments.js</h1>
+    
 <section>
+	<article>
+		<pre
+			class="sunlight-highlight-javascript linenums">var util = require('util');
+var clc = require('cli-color');
 
-<header>
-    <h2>
-    
-    </h2>
-    
-</header>
+var red = clc.redBright;
 
-<article>
-    <div class="container-overview">
-    
+/**
+  * @description First argument from the command line
+  * @global
+*/
+UserInputOne = process.argv[2];
 
-    
-        
+/**
+  * @description Second argument from the command line
+  * @global
+*/
+UserInputTwo = process.argv[3];
 
-        
-<dl class="details">
-	
+/**
+  * @description Validates user input on the command line
+  *
+  * @param [firstArg='default'] {string} @see {@link TrendingNews#runMode}
+  * @param [secondArg=100] {number} @see {@link TrendingNews#scoreThreshold}
+  * @returns {boolean} True, if arguments are valid; false, otherwise.
+  *
+  * @function validateArguments
+  * @private
+*/
+validateArguments = function(firstArg, secondArg) {
+  var firstArgError = "'%s' must be 'debug', 'default', 'test', or 'prod'!";
+  var secondArgError = "'%s' must be a number from 1 to 100!";
 
-	
+  var defaultFirstArg = 'default';
+  var defaultSecondArg = 100;
 
-	
+  if (!firstArg && !secondArg)
+  {
+    UserInputOne = defaultFirstArg;
+    UserInputTwo = defaultSecondArg;
+    return true;
+  }
 
-	
+  if (parseInt(firstArg))
+  {
+    if (secondArg)
+    {
+      console.error(red(util.format(firstArgError, firstArg)));
+      console.error(red(util.format('and ' + secondArgError, secondArg)));
+      return false;
+    }
 
-	
+    if (firstArg &lt; 1 || firstArg > 100)
+    {
+      console.error(red(util.format(secondArgError, firstArg)));
+      return false;
+    }
 
-	
+    UserInputOne = defaultFirstArg;
+    UserInputTwo = parseInt(firstArg);
+    return true;
+  }
 
-	
+  if (firstArg !== 'debug' && firstArg !== 'default' && firstArg !== 'test' && firstArg !== 'prod')
+  {
+    console.error(red(util.format(firstArgError, firstArg)));
+    return false;
+  }
 
-	
+  if (!secondArg)
+  {
+    UserInputTwo = defaultSecondArg;
+    return true;
+  }
 
-	
+  if (!parseInt(secondArg))
+  {
+    console.error(red(util.format(secondArgError, secondArg)));
+    return false;
+  }
 
+  var secondArg = parseInt(secondArg);
+  if (secondArg &lt; 1 || secondArg > 100)
+  {
+    console.error(red(util.format(secondArgError, secondArg)));
+    return false;
+  }
 
+  return true;
+}
 
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="TrendingNews.html">TrendingNews</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-        <h3 class="subsection-title">Namespaces</h3>
-
-        <dl>
-            <dt><a href="namespaces.html#config"><a href="config.html">config</a></a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
+/** 
+  * A module for validating user input on the command line
+  *
+  * @module validate-arguments
+  * @requires cli-color
+  * @requires util
+*/
+module.exports = validateArguments;</pre>
+	</article>
 </section>
+
 
 
 
@@ -219,10 +237,6 @@
 				</footer>
 			</div>
 
-			
-			<div class="span3">
-				<div id="toc"></div>
-			</div>
 			
 			<br clear="both">
 		</div>
