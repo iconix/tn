@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: trending-news.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: trending-news.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>(function() {
+  var TrendingNews, config, hashCode, http, logger, storage;
+
+  http = require('http');
+
+  storage = require('node-persist');
+
+  logger = require('../lib/logger');
+
+  hashCode = require('../lib/hash-code');
+
+  config = require('../lib/config');
+
+  require('../lib/mock-index-stream');
+
+
+  /**
+    * @class TrendingNews
+    * @classdesc Gets up-to-date, trending news
+    *
+    * @example How to create class instance, method 1
+    *   new TrendingNews(runMode, scoreThreshold)
+    *
+    * @example How to create class instance, method 2
+    *   new TrendingNews(runMode)
+    *
+    * @example How to create class instance, method 3
+    *   new TrendingNews(scoreThreshold)
+   */
+
+  TrendingNews = (function() {
+    var filterNewsByTrendScore, filterNewsIfSeenBefore, finished, get, getLatestNewsForTopic, results, resultsCallback, scoreThreshold, set;
+
+    get = function(props) {
+      var getter, name, _results;
+      _results = [];
+      for (name in props) {
+        getter = props[name];
+        _results.push(TrendingNews.prototype.__defineGetter__(name, getter));
+      }
+      return _results;
+    };
+
+    set = function(props) {
+      var name, setter, _results;
+      _results = [];
+      for (name in props) {
+        setter = props[name];
+        _results.push(TrendingNews.prototype.__defineSetter__(name, setter));
+      }
+      return _results;
+    };
+
+
+    /** @private */
+
+    scoreThreshold = 100;
+
+    results = null;
+
+
+    /** @property {Object} latest news results */
+
+    get({
+      results: function() {
+        return results;
+      }
+    });
+
+    finished = false;
+
+
+    /** @property {Boolean} if instance is done processing */
+
+    get({
+      finished: function() {
+        return finished;
+      }
+    });
+
+
+    /**
+      * @constructs TrendingNews
+      * @classdesc Constructs a new framework for getting news
+      *
+      * @overload TrendingNews(mode, score)
+      *   @note Mode should equal 'debug', 'default', 'test', or 'prod'
+      *   @note Score should be from 1 to 100 (inclusive)
+      *   @param mode {String} determines logging level and whether to use Nock
+      *   @param score {Number} lowest allowed trending score for any news item
+      *
+      * @overload TrendingNews(mode)
+      *   @note Mode should equal 'debug', 'default', 'test', or 'prod'
+      *   @note Score will default to 100
+      *   @param mode {String} determines logging level and whether to use Nock
+      *
+      * @overload TrendingNews(score)
+      *   @note Score should be from 1 to 100 (inclusive)
+      *   @note Mode will default to 'default'
+      *   @param score {Number} lowest allowed trending score for any news item
+     */
+
+    function TrendingNews(mode, score) {
+      if (mode == null) {
+        mode = 'default';
+      }
+      if (score == null) {
+        score = 100;
+      }
+      if (!mode) {
+        mode = 'default';
+      }
+      if (!score) {
+        score = 100;
+      }
+      if (mode === 'debug') {
+        logger.debugLevel = 'info';
+      } else if (mode === 'test') {
+        logger.debugLevel = 'error';
+      } else if (mode === 'prod') {
+        logger.debugLevel = 'info';
+      } else {
+        mode = 'default';
+      }
+      if (mode === 'prod') {
+        process.env.NOCK_OFF = true;
+        logger.log('warn', 'Nock is OFF!');
+      } else {
+        logger.log('warn', 'Nock is ON');
+      }
+      logger.log('warn', 'in ' + mode + 'Mode (lowest log level: ' + logger.debugLevel + ')');
+      scoreThreshold = score;
+      logger.log('warn', 'scoreThreshold = ' + scoreThreshold);
+    }
+
+
+    /**
+      * @method filterNewsByTrendScore
+      * @description Removes news items that fall below the trending score threshold
+      *
+      * @param newsItems {Array&lt;Object>} list of news items to filter
+      * @return {Array&lt;Object>} list of news items, filtered by trending score
+      *
+      * @private
+     */
+
+    filterNewsByTrendScore = function(newsItems) {
+      return newsItems.filter(function(item) {
+        return item.trending_score >= scoreThreshold;
+      });
+    };
+
+
+    /**
+      * @method filterNewsIfSeenBefore
+      * @description Removes news items that have been seen before, determined by a hash of its title
+      *
+      * @param newsItems {Array&lt;Object>} list of news items to filter
+      * @return {Array&lt;Object>} list of news items, filtered by seen before status
+      *
+      * @private
+     */
+
+    filterNewsIfSeenBefore = function(newsItems) {
+      var TypeError, item, seenWhen, titleHash, unseen, _i, _len;
+      unseen = [];
+      storage.initSync({
+        dir: config.STORAGE_DIR
+      });
+      for (_i = 0, _len = newsItems.length; _i &lt; _len; _i++) {
+        item = newsItems[_i];
+        titleHash = hashCode.hash(item.title);
+        logger.log('info', titleHash + ', ' + item.title);
+        seenWhen = storage.getItem(titleHash);
+        if (seenWhen === void 0) {
+          unseen.push(item);
+          seenWhen = [new Date(Date.now())];
+        } else {
+          try {
+            seenWhen.push(new Date(Date.now()));
+          } catch (_error) {
+            TypeError = _error;
+            logger.log('warn', 'Problem persisting storage for item ' + titleHash + ' in a previous cycle - marking as seen');
+            seenWhen = [new Date(Date.now())];
+          }
+        }
+        storage.setItem(titleHash, seenWhen);
+      }
+      return unseen;
+    };
+
+
+    /**
+      * @method getLatestNewsForTopic
+      * @description Makes get call to an API for news about a topic
+      *
+      * @param topic {String} topic to get news about
+      * @param successCallback {Function} function to call on the success of request
+      *
+      * @private
+     */
+
+    getLatestNewsForTopic = function(topic, successCallback) {
+      var classObj, options;
+      logger.log('info', 'Getting all news for topic: ' + topic + '...');
+      classObj = this;
+      options = {
+        hostname: config.REQUEST_HOSTNAME,
+        path: config.REQUEST_PATH + encodeURIComponent(topic),
+        headers: config.REQUEST_HEADERS
+      };
+      return http.get(options, function(response) {
+        var data;
+        data = '';
+        response.on('data', function(chunk) {
+          return data += chunk;
+        });
+        response.on('end', function() {
+          var SyntaxError, allNewsItems, filteredItems, unseenItems;
+          if (response.statusCode === 200) {
+            try {
+              data = JSON.parse(data);
+            } catch (_error) {
+              SyntaxError = _error;
+              logger.log('error', "Response '" + data + "' is not valid JSON!");
+              data = {
+                link_list: []
+              };
+            }
+            allNewsItems = data.link_list;
+            logger.log('info', '# ' + topic + ' items before filter: ' + allNewsItems.length);
+            filteredItems = filterNewsByTrendScore(allNewsItems);
+            logger.log('info', '# ' + topic + ' items after filter: ' + filteredItems.length);
+            unseenItems = filterNewsIfSeenBefore(filteredItems);
+            logger.log('info', '# ' + topic + ' items never seen before: ' + unseenItems.length);
+            logger.log('info', '---');
+            return successCallback.call(classObj, topic, unseenItems);
+          } else {
+            return classObj.handleBadResponse(topic, response.statusCode);
+          }
+        });
+        return response.on('error', function(e) {
+          return classObj.handleError(topic, e.message, 'response');
+        });
+      }).on('error', function(e) {
+        return classObj.handleError(topic, e.message, 'request');
+      });
+    };
+
+
+    /**
+      * @method resultsCallback
+      * @description Stores the resulting news items of a topic.
+      * Waits for the results for all topics before handling
+      *
+      * @param topic {String} topic to get news about
+      * @param result {Array&lt;Object>} 
+      *
+      * @private
+     */
+
+    resultsCallback = function(topic, result) {
+      var classObj;
+      classObj = this;
+      results[topic] = result;
+      if (Object.keys(results).length === config.TOPICS.length) {
+        classObj.logResults(results);
+        return finished = true;
+      }
+    };
+
+
+    /**
+      * @method logResults
+      * @description Logs results of processing
+      * @note logs with level 'warn'
+      *
+      * @param res {Object} results to log
+      *
+      * @note public to allow for unit testing, although marked 'private'
+      * @private
+     */
+
+    TrendingNews.prototype.logResults = function(res) {
+      return logger.log('warn', res);
+    };
+
+
+    /**
+      * @method handleBadResponse
+      * @description Logs errors that occur due to a 'bad' response status code
+      *
+      * @param topic {String} topic with bad response status code
+      * @param statusCode {Number} bad response status code
+      *
+      * @note public to allow for unit testing, although marked 'private'
+      * @private
+     */
+
+    TrendingNews.prototype.handleBadResponse = function(topic, statusCode) {
+      return logger.log('error', 'Response with status code ' + statusCode + ' for topic ' + topic);
+    };
+
+
+    /**
+      * @method handleError
+      * @description Logs errors that occur due to a bad request or response
+      *
+      * @param topic {String} topic being processed during error
+      * @param message {String} error message
+      * @param httpObjType {String} request or response, depending on when error occurred
+      *
+      * @note public to allow for unit testing, although marked 'private'
+      * @private
+     */
+
+    TrendingNews.prototype.handleError = function(topic, message, httpObjType) {
+      return logger.log('error', 'Problem with ' + httpObjType + ' for topic ' + topic + '... ' + message);
+    };
+
+
+    /**
+      * @method getLatest
+      * @description Starts processing each news topic (asynchronous)
+     */
+
+    TrendingNews.prototype.getLatest = function() {
+      var topic, _i, _len, _ref, _results;
+      results = {};
+      logger.log('info', 'Getting latest trending news items for ' + config.TOPICS.length + ' topic(s)...');
+      _ref = config.TOPICS;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i &lt; _len; _i++) {
+        topic = _ref[_i];
+        _results.push(getLatestNewsForTopic.call(this, topic, resultsCallback));
+      }
+      return _results;
+    };
+
+    return TrendingNews;
+
+  })();
+
+  module.exports = TrendingNews;
+
+}).call(this);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="TrendingNews.html">TrendingNews</a></li></ul><h3>Global</h3><ul><li><a href="global.html#getLatest">getLatest</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Sat Aug 23 2014 21:15:48 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

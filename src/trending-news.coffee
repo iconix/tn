@@ -6,17 +6,25 @@ hashCode = require '../lib/hash-code'
 config = require '../lib/config'
 require '../lib/mock-index-stream'
 
-###
-Class for getting up-to-date, trending news
-
-@example How to create class instance, method 1
-  new TrendingNews(runMode, scoreThreshold)
-
-@example How to create class instance, method 2
-  new TrendingNews(runMode)
-
-@example How to create class instance, method 3
-  new TrendingNews(scoreThreshold)
+###*
+  * @classdesc Gets up-to-date, trending news
+  *
+  * @param [runMode='default'] {string} determines logging level and whether to use Nock
+  * @param [scoreThreshold=100] {number} lowest allowed trending score for any news item
+  *
+  * @example How to create an instance, method(1)
+  *   new TrendingNews(runMode, scoreThreshold)
+  *
+  * @example How to create an instance, method(2)
+  *   new TrendingNews(runMode)
+  *
+  * @example How to create an instance, method(3)
+  *   new TrendingNews(scoreThreshold)
+  *
+  * @property {object} results - latest news results [readonly]
+  * @property {boolean} finished - if class instance is done processing [readonly]
+  *
+  * @class TrendingNews
 ###
 class TrendingNews
 
@@ -25,32 +33,17 @@ class TrendingNews
 
   scoreThreshold = 100 # private var
 
+  # readonly
   results = null
-  # @property {Object} latest news results
   get results: -> results
 
+  # readonly
   finished = false
-  # @property {Boolean} if instance is done processing
   get finished: -> finished
 
-  ###
-  Constructs a new framework for getting news
-
-  @overload TrendingNews(mode, score)
-    @note Mode should equal 'debug', 'default', 'test', or 'prod'
-    @note Score should be from 1 to 100 (inclusive)
-    @param mode {String} determines logging level and whether to use Nock
-    @param score {Number} lowest allowed trending score for any news item
-
-  @overload TrendingNews(mode)
-    @note Mode should equal 'debug', 'default', 'test', or 'prod'
-    @note Score will default to 100
-    @param mode {String} determines logging level and whether to use Nock
-
-  @overload TrendingNews(score)
-    @note Score should be from 1 to 100 (inclusive)
-    @note Mode will default to 'default'
-    @param score {Number} lowest allowed trending score for any news item
+  ###*
+    * @description Constructs a new framework for getting news
+    * @constructs TrendingNews
   ###
   constructor: (mode = 'default', score = 100) ->
     if (!mode)
@@ -79,22 +72,30 @@ class TrendingNews
     scoreThreshold = score
     logger.log 'warn', 'scoreThreshold = ' + scoreThreshold
 
-  ###
-  @private
-  Removes news items that fall below the trending score threshold
-
-  @param newsItems {Array<Object>} list of news items to filter
-  @return {Array<Object>} list of news items, filtered by trending score
+  ###*
+    * @description Removes news items that fall below the trending score threshold
+    *
+    * @param newsItems {Array<Object>} list of news items to filter
+    * @return {Array<Object>} list of news items, filtered by trending score
+    *
+    * @method filterNewsByTrendScore
+    * @memberof TrendingNews
+    * @instance
+    * @private
   ###
   filterNewsByTrendScore = (newsItems) ->
     newsItems.filter (item) -> item.trending_score >= scoreThreshold
 
-  ###
-  @private
-  Removes news items that have been seen before, determined by a hash of its title
-
-  @param newsItems {Array<Object>} list of news items to filter
-  @return {Array<Object>} list of news items, filtered by seen before status
+  ###*
+    * @description Removes news items that have been seen before, determined by a hash of its title
+    *
+    * @param newsItems {Array<Object>} list of news items to filter
+    * @return {Array<Object>} list of news items, filtered by seen before status
+    *
+    * @method filterNewsIfSeenBefore
+    * @memberof TrendingNews
+    * @instance
+    * @private
   ###
   filterNewsIfSeenBefore = (newsItems) ->
     unseen = []
@@ -122,12 +123,16 @@ class TrendingNews
 
     return unseen
 
-  ###
-  @private
-  Makes get call to an API for news about a topic
-
-  @param topic {String} topic to get news about
-  @param successCallback {Function} function to call on the success of request
+  ###*
+    * @description Makes get call to an API for news about a topic
+    *
+    * @param topic {String} topic to get news about
+    * @param successCallback {Function} function to call on the success of request
+    *
+    * @method getLatestNewsForTopic
+    * @memberof TrendingNews
+    * @instance
+    * @private
   ###
   getLatestNewsForTopic = (topic, successCallback) ->
     logger.log 'info', 'Getting all news for topic: ' + topic + '...'
@@ -177,13 +182,17 @@ class TrendingNews
       classObj.handleError topic, e.message, 'request'
     )
 
-  ###
-  @private
-  Stores the resulting news items of a topic
-  Waits for the results for all topics before handling
-
-  @param topic {String} topic to get news about
-  @param result {Array<Object>} 
+  ###*
+    * @description Stores the resulting news items of a topic.
+    * Waits for the results for all topics before handling
+    *
+    * @param topic {String} topic to get news about
+    * @param result {Array<Object>} 
+    *
+    * @callback TrendingNews~resultsCallback
+    * @memberof TrendingNews
+    * @instance
+    * @private
   ###
   resultsCallback = (topic, result) ->
     classObj = this
@@ -193,45 +202,57 @@ class TrendingNews
       classObj.logResults results
       finished = true
 
-  ###
-  @private
-  @note public to allow for unit testing, although marked 'private'
-
-  Logs results of processing
-  @note logs with level 'warn'
-
-  @param res {Object} results to log
+  ###*
+    * @description Logs results of processing
+    * Logs with level 'warn', public to allow for unit testing, although marked 'private'
+    *
+    * @param res {Object} results to log
+    *
+    * @method logResults
+    * @memberof TrendingNews
+    * @instance
+    * @private
   ###
   logResults: (res) ->
     logger.log 'warn', res
 
-  ###
-  @private
-  @note public to allow for unit testing, although marked 'private'
-
-  Logs errors that occur due to a 'bad' response status code
-
-  @param topic {String} topic with bad response status code
-  @param statusCode {Number} bad response status code
+  ###*
+    * @description Logs errors that occur due to a 'bad' response status code.
+    * Public to allow for unit testing, although marked 'private'
+    *
+    * @param topic {String} topic with bad response status code
+    * @param statusCode {Number} bad response status code
+    *
+    * @method handleBadResponse
+    * @memberof TrendingNews
+    * @instance
+    * @private
   ###
   handleBadResponse: (topic, statusCode) ->
     logger.log 'error', 'Response with status code ' + statusCode + ' for topic ' + topic
 
-  ###
-  @private
-  @note public to allow for unit testing, although marked 'private'
-
-  Logs errors that occur due to a bad request or response
-
-  @param topic {String} topic being processed during error
-  @param message {String} error message
-  @param httpObjType {String} request or response, depending on when error occurred
+  ###*
+    * @description Logs errors that occur due to a bad request or response.
+    * Public to allow for unit testing, although marked 'private'
+    *
+    * @param topic {String} topic being processed during error
+    * @param message {String} error message
+    * @param httpObjType {String} request or response, depending on when error occurred
+    *
+    * @method handleError
+    * @memberof TrendingNews
+    * @instance
+    * @private
   ###
   handleError: (topic, message, httpObjType) ->
     logger.log 'error', 'Problem with ' + httpObjType + ' for topic ' + topic + '... ' + message
 
-  ###
-  Starts processing each news topic (asynchronous)
+  ###*
+    * @description Processes every news topic in an asynchronous manner
+    *
+    * @method getLatest
+    * @memberof TrendingNews
+    * @instance
   ###
   getLatest: ->
     results = {}
@@ -239,5 +260,13 @@ class TrendingNews
     logger.log 'info', 'Getting latest trending news items for ' + config.TOPICS.length + ' topic(s)...'
     getLatestNewsForTopic.call(this, topic, resultsCallback) for topic in config.TOPICS
 
-
+###* 
+  * A module for the {@link TrendingNews} class
+  * @module trending-news
+  *
+  * @requires logger
+  * @requires hash-code
+  * @requires config
+  * @requires mock-index-stream
+###
 module.exports = TrendingNews

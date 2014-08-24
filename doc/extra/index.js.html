@@ -2,7 +2,7 @@
 <html>
   <head>
   <meta charset='UTF-8'>
-  <title>CoffeeScript API Documentation</title>
+  <title>TrendingNews Documentation</title>
   <script src='../javascript/application.js'></script>
   <script src='../javascript/search.js'></script>
   <link rel='stylesheet' href='../stylesheets/application.css' type='text/css'>
@@ -11,15 +11,15 @@
     <div id='base' data-path='../'></div>
 <div id='header'>
   <div id='menu'>
-    <a href='../extra/README.md.html' title='Trending-news'>
-      Trending-news
+    <a href='../extra/README.md.html' title='trending-news'>
+      trending-news
     </a>
     &raquo;
     <a href='../alphabetical_index.html' title='Index'>
       Index
     </a>
     &raquo;
-    <span class='title'>README.md</span>
+    <span class='title'>index.js</span>
   </div>
 </div>
     <div id='content'>
@@ -34,11 +34,11 @@
         </p>
       </nav>
       <div id='filecontents'>
-        <h1 id="trending-news">trending news</h1><p>A simpler variation on the TechM project. Get news, filter by score, push to phone.</p>
+        <p>var clc = require('cli-color');<br/>var TrendingNews = require('./lib/trending-news');<br/>var config = require('./lib/config');<br/>var validateArguments = require('./lib/validate-arguments');<br/><br/>var red = clc.redBright;<br/>var trendingNews;<br/>var callRateIntervalObj;<br/><br/>var addProcessListeners = function() {<br/>  process.on('SIGINT', function() {<br/>      console.log("Shutting down process...");<br/>      <br/>      // non-blocking check if getLatest is finished processing all topics before exiting<br/>      setInterval(function() {<br/>        if (trendingNews.finished)<br/>        {<br/>          clearInterval(callRateIntervalObj);<br/>          process.exit();<br/>        }<br/>      }, config.POLL_TO_EXIT_RATE);<br/>    });<br/><br/>    process.on('uncaughtException', function (err) {<br/>        console.error(red('Uncaught Exception...\n' + err.stack));<br/>    });<br/>}<br/><br/>var executeMainLoop = function() {<br/>  trendingNews = new TrendingNews(one, two);<br/>  console.log("Get latest at " + new Date(Date.now()));<br/>  trendingNews.getLatest();<br/>}<br/><br/>var main = function() {<br/>  var areValidArgs = validateArguments(one, two);<br/><br/>  if (areValidArgs)<br/>  {<br/>    addProcessListeners();<br/><br/>    // initial call<br/>    executeMainLoop();<br/><br/>    // successive calls until process exits<br/>    callRateIntervalObj = setInterval(function() {<br/>      executeMainLoop();<br/>    }, config.CALL_RATE);<br/>  }<br/>}<br/><br/>if (require.main === module) {<br/>  main();<br/>}</p>
       </div>
     </div>
     <div id='footer'>
-  August 21, 14 23:44:58 by
+  August 22, 14 00:22:11 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
