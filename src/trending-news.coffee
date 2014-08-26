@@ -22,7 +22,7 @@ require '../lib/mock-index-stream'
   *   new TrendingNews(scoreThreshold)
   *
   * @property {object} results - latest news results [readonly]
-  * @property {boolean} finished - if class instance is done processing [readonly]
+  * @property {boolean} finished - if class instance is done processing
   *
   * @class TrendingNews
 ###
@@ -37,9 +37,9 @@ class TrendingNews
   results = null
   get results: -> results
 
-  # readonly
   finished = false
   get finished: -> finished
+  set finished: (value) -> finished = value;
 
   ###*
     * @description Constructs a new framework for getting news
@@ -214,7 +214,7 @@ class TrendingNews
     * @private
   ###
   logResults: (res) ->
-    logger.log 'warn', res
+    #logger.log 'warn', res
 
   ###*
     * @description Logs errors that occur due to a 'bad' response status code.

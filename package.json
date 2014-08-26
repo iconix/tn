@@ -24,6 +24,7 @@
   "homepage": "https://github.com/iconix/tn",
   "dependencies": {
     "cli-color": "~0.3.2",
+    "instapush": "0.0.7",
     "node-persist": "~0.0.2"
   },
   "devDependencies": {

@@ -93,7 +93,16 @@ config = () ->
     * @memberof config
     * @instance
   ###
-  define 'CALL_RATE', 720000, false # 12 minute-interval
+  define 'CALL_RATE', 720000, false # 12-minute interval
+
+  ###*
+    * @description How often to check if we're ready to send notifications [readonly]
+    *
+    * @constant POLL_TO_NOTIFY_RATE
+    * @memberof config
+    * @instance
+  ###
+  define 'POLL_TO_NOTIFY_RATE', 2000, false # 2-second interval
 
   ###*
     * @description How often to check if it is safe to exit the process after receiving the kill signal [readonly]
@@ -102,6 +111,6 @@ config = () ->
     * @memberof config
     * @instance
   ###
-  define 'POLL_TO_EXIT_RATE', 1000, false # 1 second
+  define 'POLL_TO_EXIT_RATE', 1000, false # 1-second interval
 
 config()
