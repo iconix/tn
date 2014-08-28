@@ -127,14 +127,14 @@ class TrendingNews
     * @description Makes get call to an API for news about a topic
     *
     * @param topic {String} topic to get news about
-    * @param successCallback {Function} function to call on the success of request
+    * @param resultsCallback {Function} function to call on the success of request
     *
     * @method getLatestNewsForTopic
     * @memberof TrendingNews
     * @instance
     * @private
   ###
-  getLatestNewsForTopic = (topic, successCallback) ->
+  getLatestNewsForTopic = (topic, resultsCallback) ->
     logger.log 'info', 'Getting all news for topic: ' + topic + '...'
     classObj = this
 
@@ -170,16 +170,16 @@ class TrendingNews
 
           logger.log 'info', '---'
 
-          successCallback.call classObj, topic, unseenItems
+          resultsCallback.call classObj, topic, unseenItems
         else
-          classObj.handleBadResponse topic, response.statusCode
+          classObj.handleBadResponse.call classObj, topic, response.statusCode
       )
 
       response.on('error', (e) ->
-        classObj.handleError topic, e.message, 'response'
+        classObj.handleError.call classObj, topic, e.message, 'response'
       )
     ).on('error', (e) -> # on request error
-      classObj.handleError topic, e.message, 'request'
+      classObj.handleError.call classObj, topic, e.message, 'request'
     )
 
   ###*
@@ -229,7 +229,10 @@ class TrendingNews
     * @private
   ###
   handleBadResponse: (topic, statusCode) ->
+    classObj = this
+
     logger.log 'error', 'Response with status code ' + statusCode + ' for topic ' + topic
+    resultsCallback.call classObj, topic, []
 
   ###*
     * @description Logs errors that occur due to a bad request or response.
@@ -245,7 +248,10 @@ class TrendingNews
     * @private
   ###
   handleError: (topic, message, httpObjType) ->
+    classObj = this
+
     logger.log 'error', 'Problem with ' + httpObjType + ' for topic ' + topic + '... ' + message
+    resultsCallback.call classObj, topic, []
 
   ###*
     * @description Processes every news topic in an asynchronous manner
