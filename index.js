@@ -12,7 +12,7 @@ var trendingNews, callRateIntervalObj, notifyIntervalObj;
 
 var addProcessListeners = function() {
   process.on('SIGINT', function() {
-      console.log("Shutting down process...");
+      console.log('Shutting down process...');
       
       // non-blocking check if mobile notification has been sent before exiting
       setInterval(function() {
@@ -38,7 +38,7 @@ var addNotificationListener = function() {
     //if (trendingNews.finished) TODO use this if statement
     if (false)
     {
-      console.log("Sending notifications");
+      console.log('Sending notifications');
 
       // prevent duplicate send on same results
       trendingNews.finished = false;
@@ -46,26 +46,30 @@ var addNotificationListener = function() {
       console.log(toNotify);
 
       var keys = Object.keys(toNotify);
-      // TODO double for-loop and waaaaayyy too many notifications :(
+      // TODO double for-loop?
       for (var tIndex = 0; tIndex < keys.length; tIndex++) {
 
         var topic = keys[tIndex];
         var topicalNews = toNotify[topic];
 
-        for (var nIndex = 0; nIndex < topicalNews.length; nIndex++) {
+        if (topicalNews.length > 0)
+        {
+          var titleStr = '|';
 
-          var news = topicalNews[nIndex];
+          for (var nIndex = 0; nIndex < topicalNews.length; nIndex++) {
+            var news = topicalNews[nIndex];
+            titleStr += ' ' + news.title + ' |';
+          }
 
           instapush.notify({
-            "event": "new-news",
-            "trackers": {
-              "topic": topic, "title": news.title, "desc": news.description, "score": news.trending_score,
-              "provider": news.provider_name, "url": news.url
-            }
-          }, function(err, response) { console.log(response); });
-
+              'event': 'trend',
+              'trackers': {
+                'topic': topic,
+                'title_str': titleStr
+              }
+            }, function(err, response) { console.log(response); }
+          );
         }
-
       }
 
       notificationsSent = true;
@@ -75,7 +79,7 @@ var addNotificationListener = function() {
 
 var executeMainLoop = function() {
   trendingNews = new TrendingNews(UserInputOne, UserInputTwo);
-  console.log("Get latest at " + new Date(Date.now()));
+  console.log('Get latest at ' + new Date(Date.now()));
   notificationsSent = false;
   trendingNews.getLatest();
 }
