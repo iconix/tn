@@ -214,7 +214,7 @@ class TrendingNews
     * @private
   ###
   logResults: (res) ->
-    #logger.log 'warn', res
+    logger.log 'warn', res
 
   ###*
     * @description Logs errors that occur due to a 'bad' response status code.

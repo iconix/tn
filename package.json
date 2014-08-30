@@ -6,7 +6,9 @@
   "scripts": {
     "test": "./node_modules/.bin/grunt jasmine_node",
     "install": "./node_modules/.bin/grunt coffee",
-    "start": "node index.js"
+    "start": "node index.js",
+    "startprod": "node index.js 'prod'",
+    "startdebug": "node index.js 'debug'"
   },
   "repository": {
     "type": "git",
