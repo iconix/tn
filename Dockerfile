@@ -11,8 +11,9 @@ RUN apt-get install -y nodejs npm git git-core
 # set /usr/bin/node as a symlink to /usr/bin/nodejs
 RUN apt-get install nodejs-legacy
 
-ADD https://rawgit.com/iconix/tn/master/docker_start.sh /tmp/
+# warning: this will be cached
+ADD https://rawgit.com/iconix/tn/master/docker_getscript.sh /tmp/
 
-RUN chmod +x /tmp/docker_start.sh
+RUN chmod +x /tmp/docker_getscript.sh
 
-CMD ./tmp/docker_start.sh
+CMD ./tmp/docker_getscript.sh
