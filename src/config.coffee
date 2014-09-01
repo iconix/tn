@@ -47,7 +47,7 @@ config = () ->
     * @memberof config
     * @instance
   ###
-  define 'STORAGE_DIR', 'TNStorage', true
+  define 'STORAGE_DIR', '/data/tn', true
 
   ###*
     * @description Domain name of the news API [readonly]
