@@ -25,18 +25,19 @@
   },
   "homepage": "https://github.com/iconix/tn",
   "dependencies": {
-    "cli-color": "~0.3.2",
+    "cli-color": "^0.3.2",
     "instapush": "0.0.7",
-    "node-persist": "~0.0.2"
+    "nconf": "^0.6.9",
+    "node-persist": "0.0.2"
   },
   "devDependencies": {
-    "coffee-script": "~1.7.1",
-    "grunt": "~0.4.5",
-    "grunt-cli": "~0.1.13",
-    "grunt-contrib-coffee": "~0.11.0",
-    "grunt-jasmine-node": "~0.2.1",
-    "grunt-jsdoc": "~0.5.7",
-    "jasmine-node": "~1.14.5",
-    "nock": "~0.42.1"
+    "coffee-script": "^1.8.0",
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-coffee": "^0.11.1",
+    "grunt-jasmine-node": "^0.2.1",
+    "grunt-jsdoc": "^0.5.7",
+    "jasmine-node": "^1.14.5",
+    "nock": "^0.46.0"
   }
 }

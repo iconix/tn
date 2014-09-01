@@ -1,5 +1,6 @@
 var clc = require('cli-color');
 var instapush = require('instapush');
+var nconf = require('nconf');
 var TrendingNews = require('./lib/trending-news');
 var config = require('./lib/config');
 var validateArguments = require('./lib/validate-arguments');
@@ -8,7 +9,14 @@ var red = clc.redBright;
 var notificationsSent = true;
 var trendingNews, callRateIntervalObj, notifyIntervalObj;
 
-// TODO authorize instapush.settings
+nconf.file('instapush_settings.json')
+     .env();
+
+instapush.settings({
+  token: nconf.get('user_token'),
+  id: nconf.get('app_id'),
+  secret: nconf.get('app_secret')
+});
 
 var addProcessListeners = function() {
   process.on('SIGINT', function() {
@@ -16,8 +24,7 @@ var addProcessListeners = function() {
       
       // non-blocking check if mobile notification has been sent before exiting
       setInterval(function() {
-        //if (notificationsSent) TODO use this if statement
-        if (trendingNews.finished)
+        if (notificationsSent)
         {
           // TODO probs no reason to clear intervals at this point...
           clearInterval(callRateIntervalObj);
@@ -35,8 +42,7 @@ var addProcessListeners = function() {
 var addNotificationListener = function() {
   // non-blocking check if getLatest is finished processing all topics before sending notification
   notifyIntervalObj = setInterval(function() {
-    //if (trendingNews.finished) TODO use this if statement
-    if (false)
+    if (trendingNews.finished)
     {
       console.log('Sending notifications');
 

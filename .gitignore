@@ -9,3 +9,5 @@ node_modules/grunt-jsdoc/node_modules/jsdoc/*
 
 lib/trending-news.js
 lib/config.js
+
+instapush_settings.json
