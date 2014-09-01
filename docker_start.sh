@@ -12,4 +12,4 @@ npm install && npm install -g coffee-script
 # compile CoffeeScript
 coffee --compile --output lib/ src/
 
-npm run startdebug
+npm run startprod
