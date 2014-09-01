@@ -6,7 +6,7 @@ FROM ubuntu:14.04
 RUN apt-get update
 
 # install nodejs, npm, git
-RUN apt-get install -y nodejs npm git git-core
+RUN apt-get install -y nodejs npm git git-core curl
 
 # set /usr/bin/node as a symlink to /usr/bin/nodejs
 RUN apt-get install nodejs-legacy
