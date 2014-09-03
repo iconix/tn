@@ -11,3 +11,4 @@ lib/trending-news.js
 lib/config.js
 
 instapush_settings.json
+docker_env

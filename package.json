@@ -1,6 +1,6 @@
 {
   "name": "trending-news",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Get news, filter by score, push to phone",
   "main": "index.js",
   "scripts": {
