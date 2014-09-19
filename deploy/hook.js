@@ -6,7 +6,6 @@ var execFile = require('child_process').execFile; // Import execFile, to run our
 gith({
   repo: 'iconix/tn'
 }).on( 'all', function( payload ) {
-  console.log('Payload: ' + payload);
   if( payload.branch === 'master' )
   {
     var start = Date.now();
@@ -17,8 +16,11 @@ gith({
          maxBuffer: 1024 * 1024 // 1mb
     }
 
-    execFile('hook.sh', execOptions, function(error, stdout, stderr) {
+    execFile('./hook.sh', execOptions, function(error, stdout, stderr) {
       // Log success in some manner
+
+      console.log(stdout);
+
       var end = Date.now();
       console.log( '[' + Date(end) + '] Deployment complete.' );
       console.log('Deployment completed in ' + (end - start)/1000 + 's');

@@ -38,9 +38,6 @@ echo '>>> Restarting docker'
 service docker restart
 sleep 5
 
-echo '>>> Creating/starting new container based on new image'
-docker run -p 8080:8080 -d --volumes-from tn_data --name tn_app iconix/tn --env-file ../docker_env
-
 # We remove any container which:
 #   1) is not the data-only container and
 #   2) has exited
@@ -48,3 +45,6 @@ echo '>>> Cleaning up containers'
 docker ps -a | grep -v "tn_data" | grep "Exit" | awk '{print $1}' | while read -r id ; do
   docker rm $id
 done
+
+echo '>>> Creating/starting new container based on new image'
+docker run -p 8080:8080 -d --volumes-from tn_data --name tn_app iconix/tn --env-file ../docker_env
