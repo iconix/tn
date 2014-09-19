@@ -47,4 +47,4 @@ docker ps -a | grep -v "tn_data" | grep "Exit" | awk '{print $1}' | while read -
 done
 
 echo '>>> Creating/starting new container based on new image'
-docker run -p 8080:8080 -d --volumes-from tn_data --name tn_app iconix/tn --env-file ../docker_env
+docker run -p 8080:8080 -d --volumes-from tn_data --name tn_app --env-file ../docker_env iconix/tn
