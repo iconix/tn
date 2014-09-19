@@ -12,3 +12,5 @@ lib/config.js
 
 instapush_settings.json
 docker_env
+
+deploy/node_modules/

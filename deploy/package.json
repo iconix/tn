@@ -1,0 +1,29 @@
+{
+  "name": "gith-deployer",
+  "version": "0.0.0",
+  "description": "GitHub WebHooks + Gith = Automatic Deployments",
+  "main": "hook.js",
+  "scripts": {
+    "start": "./node_modules/.bin/forever start hook.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iconix/tn.git"
+  },
+  "keywords": [
+    "deploy",
+    "gith",
+    "webhooks",
+    "continuous"
+  ],
+  "author": "iconix",
+  "bugs": {
+    "url": "https://github.com/iconix/tn/issues"
+  },
+  "homepage": "https://github.com/iconix/tn",
+  "dependencies": {
+    "forever": "^0.11.1",
+    "gith": "^1.0.4"
+  },
+  "devDependencies": {}
+}

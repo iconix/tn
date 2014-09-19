@@ -12,8 +12,8 @@ RUN apt-get install -y nodejs npm git git-core curl
 RUN apt-get install nodejs-legacy
 
 # warning: this will be cached
-ADD https://rawgit.com/iconix/tn/master/docker_getscript.sh /tmp/
+ADD https://rawgit.com/iconix/tn/master/docker_getscript.sh $HOME/
 
-RUN chmod +x /tmp/docker_getscript.sh
+RUN chmod +x $HOME/docker_getscript.sh
 
-CMD ./tmp/docker_getscript.sh
+CMD $HOME/docker_getscript.sh

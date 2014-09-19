@@ -31,6 +31,12 @@ class TrendingNews
   get = (props) => @::__defineGetter__ name, getter for name, getter of props
   set = (props) => @::__defineSetter__ name, setter for name, setter of props
 
+  ### TODO scoreThreshold, results, finished are private BUT shared among all instances of class! DO NOT WANT
+  # Use instance properties (this.varName) instead - set in constructor
+  # This should also let me write my tests with less repeated code
+  # http://book.mixu.net/node/ch6.html
+  ###
+
   scoreThreshold = 100 # private var
 
   # readonly
@@ -52,6 +58,7 @@ class TrendingNews
     if (!score)
       score = 100
 
+    # TODO make this a switch statement?
     if (mode == 'debug')
       logger.debugLevel = 'info'
     else if (mode == 'test')
@@ -136,6 +143,7 @@ class TrendingNews
   ###
   getLatestNewsForTopic = (topic, resultsCallback) ->
     logger.log 'info', 'Getting all news for topic: ' + topic + '...'
+    # TODO set classObj var just once as instance var in constructor instead?
     classObj = this
 
     options = {
@@ -161,6 +169,8 @@ class TrendingNews
 
           allNewsItems = data.link_list # strip topic name and status code
           logger.log 'info', '# ' + topic + ' items before filter: ' + allNewsItems.length
+
+          # TODO dispatchStorageTask - store all response data asynchronously
 
           filteredItems = filterNewsByTrendScore allNewsItems
           logger.log 'info', '# ' + topic + ' items after filter: ' + filteredItems.length
