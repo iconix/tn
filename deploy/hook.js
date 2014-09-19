@@ -6,6 +6,7 @@ var execFile = require('child_process').execFile; // Import execFile, to run our
 gith({
   repo: 'iconix/tn'
 }).on( 'all', function( payload ) {
+  console.log('Payload: ' + payload);
   if( payload.branch === 'master' )
   {
     var start = Date.now();
@@ -22,5 +23,9 @@ gith({
       console.log( '[' + Date(end) + '] Deployment complete.' );
       console.log('Deployment completed in ' + (end - start)/1000 + 's');
     });
+  } else {
+    console.log( '[' + Date(start) + '] Payload was not for master, aborting.' );
   }
 });
+
+console.log('Gith is now listening.');
