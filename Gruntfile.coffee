@@ -19,9 +19,17 @@ module.exports = (grunt) ->
         options:
           configure: './node_modules/grunt-jsdoc/node_modules/jsdoc/conf.json'
           private: false
+    clean:
+      hooks: ['.git/hooks/pre-commit']
+    shell:
+      hooks:
+        command: './node_modules/precommit-hook/bin/install'
   
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-jasmine-node'
   grunt.loadNpmTasks 'grunt-jsdoc'
+  grunt.loadNpmTasks 'grunt-contrib-clean'
+  grunt.loadNpmTasks 'grunt-shell'
   
   grunt.registerTask 'default', ['coffee', 'jasmine_node', 'jsdoc']
+  grunt.registerTask 'hookmeup', ['clean:hooks', 'shell:hooks']

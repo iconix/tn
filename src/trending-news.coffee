@@ -31,7 +31,9 @@ class TrendingNews
   get = (props) => @::__defineGetter__ name, getter for name, getter of props
   set = (props) => @::__defineSetter__ name, setter for name, setter of props
 
-  ### TODO scoreThreshold, results, finished are private BUT shared among all instances of class! DO NOT WANT
+  ### TODO scoreThreshold, results, finished are private
+  # BUT shared among all instances of class! DO NOT WANT
+  #
   # Use instance properties (this.varName) instead - set in constructor
   # This should also let me write my tests with less repeated code
   # http://book.mixu.net/node/ch6.html
@@ -45,7 +47,7 @@ class TrendingNews
 
   finished = false
   get finished: -> finished
-  set finished: (value) -> finished = value;
+  set finished: (value) -> finished = value
 
   ###*
     * @description Constructs a new framework for getting news
@@ -74,7 +76,8 @@ class TrendingNews
     else
       logger.log 'warn', 'Nock is ON'
 
-    logger.log 'warn', 'in ' + mode + 'Mode (lowest log level: ' + logger.debugLevel + ')'
+    logger.log 'warn', 'in ' + mode +
+      'Mode (lowest log level: '+ logger.debugLevel + ')'
 
     scoreThreshold = score
     logger.log 'warn', 'scoreThreshold = ' + scoreThreshold
@@ -123,7 +126,8 @@ class TrendingNews
         try
           seenWhen.push new Date(Date.now())
         catch TypeError
-          logger.log 'warn', 'Problem persisting storage for item ' + titleHash + ' in a previous cycle - marking as seen'
+          logger.log 'warn', 'Problem persisting storage for item ' +
+            titleHash + ' in a previous cycle - marking as seen'
           seenWhen = [ new Date(Date.now()) ]
 
       storage.setItem(titleHash, seenWhen)
@@ -168,15 +172,18 @@ class TrendingNews
             data = {link_list: []}
 
           allNewsItems = data.link_list # strip topic name and status code
-          logger.log 'info', '# ' + topic + ' items before filter: ' + allNewsItems.length
+          logger.log 'info', '# ' + topic +
+            ' items before filter: ' + allNewsItems.length
 
           # TODO dispatchStorageTask - store all response data asynchronously
 
           filteredItems = filterNewsByTrendScore allNewsItems
-          logger.log 'info', '# ' + topic + ' items after filter: ' + filteredItems.length
+          logger.log 'info', '# ' + topic +
+            ' items after filter: ' + filteredItems.length
 
           unseenItems = filterNewsIfSeenBefore filteredItems
-          logger.log 'info', '# ' + topic + ' items never seen before: ' + unseenItems.length
+          logger.log 'info', '# ' + topic +
+            ' items never seen before: ' + unseenItems.length
 
           logger.log 'info', '---'
 
@@ -197,7 +204,7 @@ class TrendingNews
     * Waits for the results for all topics before handling
     *
     * @param topic {String} topic to get news about
-    * @param result {Array<Object>} 
+    * @param result {Array<Object>}
     *
     * @callback TrendingNews~resultsCallback
     * @memberof TrendingNews
@@ -241,7 +248,8 @@ class TrendingNews
   handleBadResponse: (topic, statusCode) ->
     classObj = this
 
-    logger.log 'error', 'Response with status code ' + statusCode + ' for topic ' + topic
+    logger.log 'error', 'Response with status code ' + statusCode +
+      ' for topic ' + topic
     resultsCallback.call classObj, topic, []
 
   ###*
@@ -260,7 +268,8 @@ class TrendingNews
   handleError: (topic, message, httpObjType) ->
     classObj = this
 
-    logger.log 'error', 'Problem with ' + httpObjType + ' for topic ' + topic + '... ' + message
+    logger.log 'error', 'Problem with ' + httpObjType +
+      ' for topic ' + topic + '... ' + message
     resultsCallback.call classObj, topic, []
 
   ###*
@@ -273,10 +282,13 @@ class TrendingNews
   getLatest: ->
     results = {}
 
-    logger.log 'info', 'Getting latest trending news items for ' + config.TOPICS.length + ' topic(s)...'
-    getLatestNewsForTopic.call(this, topic, resultsCallback) for topic in config.TOPICS
+    logger.log 'info', 'Getting latest trending news items for ' +
+      config.TOPICS.length + ' topic(s)...'
 
-###* 
+    for topic in config.TOPICS
+      getLatestNewsForTopic.call(this, topic, resultsCallback)
+
+###*
   * A module for the {@link TrendingNews} class
   * @module trending-news
   *

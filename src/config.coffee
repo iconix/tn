@@ -1,4 +1,4 @@
-###* 
+###*
   * A module for the {@link config} namespace
   * @module config
 ###
@@ -75,15 +75,16 @@ config = () ->
     * @instance
   ###
   define 'REQUEST_HEADERS', {
-      'Accept': '*/*'
-      'Accept-Encoding': 'gzip,deflate,sdch'
-      'Accept-Language': 'en-US,en;q=0.8'
-      'Cache-Control': 'max-age=0'
-      'Connection': 'keep-alive'
-      'DNT': '1'  
-      'Referer': 'http://trendspottr.com/'
-      'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36'
-      'X-Requested-With': 'XMLHttpRequest'
+    'Accept': '*/*'
+    'Accept-Encoding': 'gzip,deflate,sdch'
+    'Accept-Language': 'en-US,en;q=0.8'
+    'Cache-Control': 'max-age=0'
+    'Connection': 'keep-alive'
+    'DNT': '1'
+    'Referer': 'http://trendspottr.com/'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36'
+    'X-Requested-With': 'XMLHttpRequest'
   }, false
 
   ###*
