@@ -1,6 +1,7 @@
 var clc = require('cli-color');
 var instapush = require('instapush');
 var nconf = require('nconf');
+
 var TrendingNews = require('./lib/trending-news');
 var config = require('./lib/config');
 var validateArguments = require('./lib/validate-arguments');
@@ -22,15 +23,10 @@ var addProcessListeners = function() {
   process.on('SIGINT', function() {
       console.log('Shutting down process...');
       
-      // non-blocking check if mobile notification has been sent before exiting
+      // non-blocking check if mobile notifications have been sent before exiting
       setInterval(function() {
         if (notificationsSent)
-        {
-          // TODO probs no reason to clear intervals at this point...
-          clearInterval(callRateIntervalObj);
-          clearInterval(notifyIntervalObj);
           process.exit();
-        }
       }, config.POLL_TO_EXIT_RATE);
   });
 
@@ -39,52 +35,43 @@ var addProcessListeners = function() {
   });
 }
 
-var addNotificationListener = function() {
-  // non-blocking check if getLatest is finished processing all topics before sending notification
-  notifyIntervalObj = setInterval(function() {
-    if (trendingNews.finished)
+var sendNotifications = function(results) {
+  console.log('Sending notifications');
+
+  var keys = Object.keys(results);
+  // TODO double for-loop?
+  for (var tIndex = 0; tIndex < keys.length; tIndex++) {
+
+    var topic = keys[tIndex];
+    var topicalNews = results[topic];
+
+    if (topicalNews.length > 0)
     {
-      console.log('Sending notifications');
+      var titleStr = '|';
 
-      // prevent duplicate send on same results
-      trendingNews.finished = false;
-      var toNotify = trendingNews.results;
-      console.log(toNotify);
-
-      var keys = Object.keys(toNotify);
-      // TODO double for-loop?
-      for (var tIndex = 0; tIndex < keys.length; tIndex++) {
-
-        var topic = keys[tIndex];
-        var topicalNews = toNotify[topic];
-
-        if (topicalNews.length > 0)
-        {
-          var titleStr = '|';
-
-          for (var nIndex = 0; nIndex < topicalNews.length; nIndex++) {
-            var news = topicalNews[nIndex];
-            titleStr += ' ' + news.title + ' |';
-          }
-
-          instapush.notify({
-              'event': 'trend',
-              'trackers': {
-                'topic': topic,
-                'title_str': titleStr
-              }
-            }, function(err, response) { console.log(response); }
-          );
-        }
+      for (var nIndex = 0; nIndex < topicalNews.length; nIndex++) {
+        var news = topicalNews[nIndex];
+        titleStr += ' ' + news.title + ' |';
       }
 
-      notificationsSent = true;
+      console.log(titleStr);
+
+      instapush.notify({
+          'event': 'trend',
+          'trackers': {
+            'topic': topic,
+            'title_str': titleStr
+          }
+        }, function(err, response) { console.log(response); }
+      );
     }
-  }, config.POLL_TO_NOTIFY_RATE);
+  }
+
+  console.log('Notifications sent!');
+  notificationsSent = true;
 }
 
 var executeMainLoop = function() {
-  trendingNews = new TrendingNews(UserInputOne, UserInputTwo);
   console.log('Get latest at ' + new Date(Date.now()));
   notificationsSent = false;
   trendingNews.getLatest();
@@ -96,7 +83,11 @@ var main = function() {
   if (areValidArgs)
   {
     addProcessListeners();
-    addNotificationListener();
+
+    trendingNews = new TrendingNews(UserInputOne, UserInputTwo);
+    trendingNews.on('end', function(results) {
+      sendNotifications(results)
+    });
 
     // initial call
     executeMainLoop();

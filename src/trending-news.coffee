@@ -1,5 +1,6 @@
 http = require 'http'
 storage = require 'node-persist'
+{EventEmitter} = require 'events'
 
 logger = require '../lib/logger'
 hashCode = require '../lib/hash-code'
@@ -22,16 +23,15 @@ require '../lib/mock-index-stream'
   *   new TrendingNews(scoreThreshold)
   *
   * @property {object} results - latest news results [readonly]
-  * @property {boolean} finished - if class instance is done processing
   *
   * @class TrendingNews
 ###
-class TrendingNews
+class TrendingNews extends EventEmitter
 
   get = (props) => @::__defineGetter__ name, getter for name, getter of props
   set = (props) => @::__defineSetter__ name, setter for name, setter of props
 
-  # scoreThreshold, results, finished are private shared among all instances of class
+  # scoreThreshold and results are private shared - among all instances of class
   # (http://book.mixu.net/node/ch6.html)
 
   # readonly
@@ -41,10 +41,6 @@ class TrendingNews
   # readonly
   results = null
   get results: -> results
-
-  finished = false
-  get finished: -> finished
-  set finished: (value) -> finished = value
 
   ###*
     * @description Constructs a new framework for getting news
@@ -214,7 +210,7 @@ class TrendingNews
 
     if (Object.keys(results).length == config.TOPICS.length)
       classObj.logResults results
-      finished = true
+      classObj.emit('end', results)
 
   ###*
     * @description Logs results of processing
