@@ -35,12 +35,14 @@ class TrendingNews extends EventEmitter
   # (http://book.mixu.net/node/ch6.html)
 
   # readonly
-  scoreThreshold = 100 # private var
+  scoreThreshold = 100
   get scoreThreshold: -> scoreThreshold
 
   # readonly
   results = null
   get results: -> results
+
+  classObj = null # private var
 
   ###*
     * @description Constructs a new framework for getting news
@@ -53,21 +55,17 @@ class TrendingNews extends EventEmitter
     if (!score)
       score = 100
 
-    # TODO make this a switch statement?
-    if (mode == 'debug')
-      logger.debugLevel = 'info'
-    else if (mode == 'test')
-      logger.debugLevel = 'error'
-    else if (mode == 'prod')
-      logger.debugLevel = 'info'
-    else
-      mode = 'default'
+    switch mode
+      when 'debug' then logger.debugLevel = 'info'
+      when 'test' then logger.debugLevel = 'error'
+      when 'prod' then logger.debugLevel = 'info'
+      else mode = 'default'
 
-    if (mode == 'prod')
-      process.env.NOCK_OFF = true
-      logger.log 'warn', 'Nock is OFF!'
-    else
-      logger.log 'warn', 'Nock is ON'
+    switch mode
+      when 'prod'
+        process.env.NOCK_OFF = true
+        logger.log 'warn', 'Nock is OFF!'
+      else logger.log 'warn', 'Nock is ON'
 
     logger.log 'warn', 'in ' + mode +
       'Mode (lowest log level: '+ logger.debugLevel + ')'
@@ -140,8 +138,6 @@ class TrendingNews extends EventEmitter
   ###
   getLatestNewsForTopic = (topic, resultsCallback) ->
     logger.log 'info', 'Getting all news for topic: ' + topic + '...'
-    # TODO set classObj var just once as instance var in constructor instead?
-    classObj = this
 
     options = {
       hostname: config.REQUEST_HOSTNAME
@@ -180,16 +176,16 @@ class TrendingNews extends EventEmitter
 
           logger.log 'info', '---'
 
-          resultsCallback.call classObj, topic, unseenItems
+          resultsCallback topic, unseenItems
         else
-          classObj.handleBadResponse.call classObj, topic, response.statusCode
+          classObj.handleBadResponse topic, response.statusCode
       )
 
       response.on('error', (e) ->
-        classObj.handleError.call classObj, topic, e.message, 'response'
+        classObj.handleError topic, e.message, 'response'
       )
     ).on('error', (e) -> # on request error
-      classObj.handleError.call classObj, topic, e.message, 'request'
+      classObj.handleError topic, e.message, 'request'
     )
 
   ###*
@@ -205,7 +201,6 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   resultsCallback = (topic, result) ->
-    classObj = this
     results[topic] = result
 
     if (Object.keys(results).length == config.TOPICS.length)
@@ -239,11 +234,9 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   handleBadResponse: (topic, statusCode) ->
-    classObj = this
-
     logger.log 'error', 'Response with status code ' + statusCode +
       ' for topic ' + topic
-    resultsCallback.call classObj, topic, []
+    resultsCallback topic, []
 
   ###*
     * @description Logs errors that occur due to a bad request or response.
@@ -259,11 +252,9 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   handleError: (topic, message, httpObjType) ->
-    classObj = this
-
     logger.log 'error', 'Problem with ' + httpObjType +
       ' for topic ' + topic + '... ' + message
-    resultsCallback.call classObj, topic, []
+    resultsCallback topic, []
 
   ###*
     * @description Processes every news topic in an asynchronous manner
@@ -273,13 +264,14 @@ class TrendingNews extends EventEmitter
     * @instance
   ###
   getLatest: ->
+    classObj = this
     results = {}
 
     logger.log 'info', 'Getting latest trending news items for ' +
       config.TOPICS.length + ' topic(s)...'
 
     for topic in config.TOPICS
-      getLatestNewsForTopic.call(this, topic, resultsCallback)
+      getLatestNewsForTopic topic, resultsCallback
 
 ###*
   * A module for the {@link TrendingNews} class
