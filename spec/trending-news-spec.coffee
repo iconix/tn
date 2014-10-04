@@ -104,12 +104,13 @@ describe "TrendingNews (tests for when things go wrong)", ->
       'transfer-encoding': 'chunked',
       connection: 'keep-alive' })
 
+  newsInstance = new TrendingNews 'test'
+
   afterEach ->
     storage.clear()
 
   it 'should handle news api that cannot be found (404)', (done) ->
 
-    newsInstance = new TrendingNews 'test'
     config.TOPICS = ['Error']
 
     newsInstance.getLatest()
@@ -121,8 +122,6 @@ describe "TrendingNews (tests for when things go wrong)", ->
     )
 
   it 'should handle bad request to news api', (done) ->
-
-    newsInstance = new TrendingNews 'test'
 
     newsInstance.getLatest()
 
@@ -145,7 +144,6 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
   it 'should handle news api that does not return JSON', (done) ->
 
-    newsInstance = new TrendingNews 'test'
     config.TOPICS = ['NotJson']
 
     newsInstance.getLatest()
@@ -247,12 +245,13 @@ describe "TrendingNews (tests with multiple topics)", ->
       'transfer-encoding': 'chunked',
       connection: 'keep-alive' })
 
+  newsInstance = new TrendingNews 'test'
+
   afterEach ->
     storage.clear()
 
   it 'should handle news api that has both good and bad responses', (done) ->
 
-    newsInstance = new TrendingNews 'test'
     config.TOPICS = ['Fine', 'NotFine']
 
     newsInstance.getLatest()
@@ -283,7 +282,6 @@ describe "TrendingNews (tests with multiple topics)", ->
 
   it 'should handle both good and bad requests to news api', (done) ->
 
-    newsInstance = new TrendingNews 'test'
     config.TOPICS = ['Fine', 'Error']
 
     newsInstance.getLatest()
@@ -315,7 +313,6 @@ describe "TrendingNews (tests with multiple topics)", ->
 
   xit 'should handle news api that does and does not respond', (done) ->
 
-    newsInstance = new TrendingNews 'test'
     config.TOPICS = ['Fine', 'Error']
 
     newsInstance.getLatest()

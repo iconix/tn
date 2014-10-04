@@ -31,15 +31,12 @@ class TrendingNews
   get = (props) => @::__defineGetter__ name, getter for name, getter of props
   set = (props) => @::__defineSetter__ name, setter for name, setter of props
 
-  ### TODO scoreThreshold, results, finished are private
-  # BUT shared among all instances of class! DO NOT WANT
-  #
-  # Use instance properties (this.varName) instead - set in constructor
-  # This should also let me write my tests with less repeated code
-  # http://book.mixu.net/node/ch6.html
-  ###
+  # scoreThreshold, results, finished are private shared among all instances of class
+  # (http://book.mixu.net/node/ch6.html)
 
+  # readonly
   scoreThreshold = 100 # private var
+  get scoreThreshold: -> scoreThreshold
 
   # readonly
   results = null
