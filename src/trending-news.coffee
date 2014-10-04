@@ -23,8 +23,10 @@ require '../lib/mock-index-stream'
   *   new TrendingNews(scoreThreshold)
   *
   * @property {object} results - latest news results [readonly]
+  * @property {object} scoreThreshold - current lowest allowed trending score [readonly]
   *
   * @class TrendingNews
+  * @extends EventEmitter
 ###
 class TrendingNews extends EventEmitter
 
@@ -56,9 +58,8 @@ class TrendingNews extends EventEmitter
       score = 100
 
     switch mode
-      when 'debug' then logger.debugLevel = 'info'
+      when 'debug', 'prod' then logger.debugLevel = 'info'
       when 'test' then logger.debugLevel = 'error'
-      when 'prod' then logger.debugLevel = 'info'
       else mode = 'default'
 
     switch mode
@@ -190,7 +191,7 @@ class TrendingNews extends EventEmitter
 
   ###*
     * @description Stores the resulting news items of a topic.
-    * Waits for the results for all topics before handling
+    * Waits for the results for all topics before emitting the end event
     *
     * @param topic {String} topic to get news about
     * @param result {Array<Object>}
