@@ -19,19 +19,28 @@ instapush.settings({
   secret: nconf.get('app_secret')
 });
 
+var onExit = function(signal) {
+  console.log('Shutting down process on ' + signal + '...');
+
+  // non-blocking check if mobile notifications have been sent before exiting
+  setInterval(function() {
+    if (notificationsSent)
+      process.exit();
+  }, config.POLL_TO_EXIT_RATE);
+}
+
 var addProcessListeners = function() {
   process.on('SIGINT', function() {
-      console.log('Shutting down process...');
-      
-      // non-blocking check if mobile notifications have been sent before exiting
-      setInterval(function() {
-        if (notificationsSent)
-          process.exit();
-      }, config.POLL_TO_EXIT_RATE);
+    onExit('SIGINT')
+  });
+
+  process.on('SIGTERM', function() {
+    onExit('SIGTERM')
   });
 
   process.on('uncaughtException', function (err) {
-      console.error(red('Uncaught Exception...\n' + err.stack));
+      console.error(red('Shutting down process on Uncaught Exception...\n' + err.stack));
+      process.exit(1);
   });
 }
 
