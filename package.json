@@ -12,11 +12,11 @@
     "lint": "./node_modules/.bin/coffeelint src/*",
     "compile": "./node_modules/.bin/grunt coffee",
     "test": "./node_modules/.bin/grunt jasmine_node",
-    "prepublish": "./node_modules/.bin/grunt coffee",
+    "prepublish": "npm run compile",
     "postinstall": "./node_modules/.bin/grunt hookmeup",
     "start": "node index.js",
-    "startprod": "node index.js 'prod'",
-    "startdebug": "node index.js 'debug'"
+    "startprod": "./node_modules/.bin/forever start index.js 'prod'",
+    "startdebug": "./node_modules/.bin/forever start index.js 'debug'"
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
   "dependencies": {
     "bunyan": "^1.1.0",
     "cli-color": "^0.3.2",
+    "forever": "^0.11.1",
     "instapush": "0.0.7",
     "loggly": "^1.0.5",
     "nconf": "^0.6.9",
