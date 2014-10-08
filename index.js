@@ -40,7 +40,7 @@ var addProcessListeners = function() {
 
   process.on('uncaughtException', function (err) {
       console.error(red('Shutting down process on Uncaught Exception...\n' + err.stack));
-      process.exit(1);
+      process.abort();
   });
 }
 
