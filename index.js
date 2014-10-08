@@ -38,8 +38,12 @@ var addProcessListeners = function() {
     onExit('SIGTERM')
   });
 
-  process.on('uncaughtException', function (err) {
-      console.error(red('Shutting down process on Uncaught Exception...\n' + err.stack));
+  process.on('uncaughtException', function (e) {
+      var err = new Error('Shutting down process on Uncaught Exception');
+      err.level = 'Fatal'; // there is no fixing this
+      err.original_error = e;
+
+      console.error(err);
       process.abort();
   });
 }

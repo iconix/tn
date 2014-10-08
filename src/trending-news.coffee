@@ -118,8 +118,14 @@ class TrendingNews extends EventEmitter
         try
           seenWhen.push new Date(Date.now())
         catch TypeError
-          logger.log 'warn', 'Problem persisting storage for item ' +
-            titleHash + ' in a previous cycle - marking as seen'
+          err = new Error('Problem persisting storage in a previous cycle'
+            + ' - marking as seen')
+          err.name = "Storage"
+          err.level = "Warning" # means fix below not required to continue
+          err.title = item.title
+          err.title_hash = titleHash
+
+          logger.log 'warn', err
           seenWhen = [ new Date(Date.now()) ]
 
       storage.setItem(titleHash, seenWhen)
@@ -158,7 +164,12 @@ class TrendingNews extends EventEmitter
           try
             data = JSON.parse(data)
           catch SyntaxError
-            logger.log 'error', "Response '" + data + "' is not valid JSON!"
+            err = new Error()
+            err.name = "InvalidJSON"
+            err.level = "Error" # means fix below required to continue
+            err.bad_response = data
+
+            classObj.handleError err, topic, false
             data = {link_list: []}
 
           allNewsItems = data.link_list # strip topic name and status code
@@ -179,14 +190,30 @@ class TrendingNews extends EventEmitter
 
           resultsCallback topic, unseenItems
         else
-          classObj.handleBadResponse topic, response.statusCode
+          err = new Error()
+          err.name = "BadStatusCode"
+          err.level = "Error"
+          err.topic = topic
+          err.http_code = response.statusCode
+
+          classObj.handleError err, topic, true
       )
 
       response.on('error', (e) ->
-        classObj.handleError topic, e.message, 'response'
+        err = new Error(e.message)
+        err.name = "BadResponse"
+        err.level = "Error"
+        err.topic = topic
+
+        classObj.handleError err, topic, true
       )
     ).on('error', (e) -> # on request error
-      classObj.handleError topic, e.message, 'request'
+      err = new Error(e.message)
+      err.name = "BadRequest"
+      err.level = "Error"
+      err.topic = topic
+
+      classObj.handleError err, topic, true
     )
 
   ###*
@@ -223,39 +250,22 @@ class TrendingNews extends EventEmitter
     logger.log 'warn', res
 
   ###*
-    * @description Logs errors that occur due to a 'bad' response status code.
+    * @description For given topic, log error.
+    * Can also provide an empty result for topic, if boolean set to true.
     * Public to allow for unit testing, although marked 'private'
     *
-    * @param topic {String} topic with bad response status code
-    * @param statusCode {Number} bad response status code
-    *
-    * @method handleBadResponse
-    * @memberof TrendingNews
-    * @instance
-    * @private
-  ###
-  handleBadResponse: (topic, statusCode) ->
-    logger.log 'error', 'Response with status code ' + statusCode +
-      ' for topic ' + topic
-    resultsCallback topic, []
-
-  ###*
-    * @description Logs errors that occur due to a bad request or response.
-    * Public to allow for unit testing, although marked 'private'
-    *
+    * @param error {Object} Error object with descriptive properties
     * @param topic {String} topic being processed during error
-    * @param message {String} error message
-    * @param httpObjType {String} request or response, depending on when error occurred
+    * @param provideEmptyResult {Boolean} if true, provide empty result for topic to results callback
     *
     * @method handleError
     * @memberof TrendingNews
     * @instance
     * @private
   ###
-  handleError: (topic, message, httpObjType) ->
-    logger.log 'error', 'Problem with ' + httpObjType +
-      ' for topic ' + topic + '... ' + message
-    resultsCallback topic, []
+  handleError: (error, topic, provideEmptyResult) ->
+    logger.log 'error', error
+    resultsCallback topic, [] if provideEmptyResult
 
   ###*
     * @description Processes every news topic in an asynchronous manner

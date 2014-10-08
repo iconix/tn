@@ -115,8 +115,9 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     newsInstance.getLatest()
 
-    spyOn(newsInstance, 'handleBadResponse').andCallFake(() ->
-      expect(newsInstance.handleBadResponse).toHaveBeenCalled()
+    spyOn(newsInstance, 'handleError').andCallFake(() ->
+      expect(newsInstance.handleError)
+        .toHaveBeenCalledWith({ name : 'BadStatusCode', level : 'Error', topic : 'Error', http_code : 404 }, 'Error', true)
       expect(Object.keys(newsInstance.results).length).toEqual(0)
       done()
     )
@@ -127,7 +128,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith('Error', 'Nock: No match for request GET http://trendspottr.com/indexStream.php?q=Error ', 'request')
+        .toHaveBeenCalledWith({ name : 'BadRequest', level : 'Error', topic : 'Error' }, 'Error', true)
       expect(Object.keys(newsInstance.results).length).toEqual(0)
       done()
     )
@@ -138,7 +139,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith('Test', 'Nock: No match for request GET http://trendspottr.com/indexStream.php?q=Error ', 'response')
+        .toHaveBeenCalledWith({ name : 'BadResponse', level : 'Error', topic : 'Error' }, 'Error', true)
       done()
     )
 
@@ -147,6 +148,11 @@ describe "TrendingNews (tests for when things go wrong)", ->
     config.TOPICS = ['NotJson']
 
     newsInstance.getLatest()
+
+    spyOn(newsInstance, 'handleError').andCallFake(() ->
+      expect(newsInstance.handleError)
+        .toHaveBeenCalledWith({ name : 'InvalidJSON', level : 'Error', bad_response : 'Status OK, but not a JSON response.' }, 'NotJson', false)
+    )
 
     spyOn(newsInstance, 'logResults').andCallFake(() ->
       expect(newsInstance.logResults).toHaveBeenCalled()
@@ -227,9 +233,9 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
 describe "TrendingNews (tests with multiple topics)", ->
 
   nock('http://trendspottr.com:80')
-    .get('/indexStream.php?q=NotFine')
+    .get('/indexStream.php?q=Redirect')
     .delayConnection(httpDelay)
-    .reply(404)
+    .reply(302)
     .get('/indexStream.php?q=Fine')
     .twice()
     .delayConnection(httpDelay)
@@ -252,7 +258,7 @@ describe "TrendingNews (tests with multiple topics)", ->
 
   it 'should handle news api that has both good and bad responses', (done) ->
 
-    config.TOPICS = ['Fine', 'NotFine']
+    config.TOPICS = ['Fine', 'Redirect']
 
     newsInstance.getLatest()
 
@@ -265,18 +271,19 @@ describe "TrendingNews (tests with multiple topics)", ->
       if (numRequestsProcessed == 2)
         expect(Object.keys(newsInstance.results).length).toEqual(2)
         expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.NotFine.length).toEqual(0)
+        expect(newsInstance.results.Redirect.length).toEqual(0)
       done()
     )
 
-    spyOn(newsInstance, 'handleBadResponse').andCallFake(() ->
-      expect(newsInstance.handleBadResponse).toHaveBeenCalled()
+    spyOn(newsInstance, 'handleError').andCallFake(() ->
+      expect(newsInstance.handleError)
+        .toHaveBeenCalledWith({ name : 'BadStatusCode', level : 'Error', topic : 'Redirect', http_code : 302 }, 'Redirect', true)
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
         expect(Object.keys(newsInstance.results).length).toEqual(2)
         expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.NotFine.length).toEqual(0)
+        expect(newsInstance.results.Redirect.length).toEqual(0)
       done()
     )
 
@@ -301,7 +308,7 @@ describe "TrendingNews (tests with multiple topics)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith('Error', 'Nock: No match for request GET http://trendspottr.com/indexStream.php?q=Error ', 'request')
+        .toHaveBeenCalledWith({ name : 'BadRequest', level : 'Error', topic : 'Error' }, 'Error', true)
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
@@ -332,7 +339,7 @@ describe "TrendingNews (tests with multiple topics)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith('Error', 'Nock: No match for request GET http://trendspottr.com/indexStream.php?q=Error ', 'request')
+        .toHaveBeenCalledWith({ name : 'BadRequest', level : 'Error', topic : 'Error' }, 'Error', true)
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
