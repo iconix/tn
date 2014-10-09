@@ -39,7 +39,8 @@ var addProcessListeners = function() {
   });
 
   process.on('uncaughtException', function (e) {
-      var err = new Error('Shutting down process on Uncaught Exception');
+      var err = new Error('Aborting process');
+      err.name = 'UncaughtException';
       err.level = 'Fatal'; // there is no fixing this
       err.original_error = e;
 
@@ -109,6 +110,17 @@ var main = function() {
     callRateIntervalObj = setInterval(function() {
       executeMainLoop();
     }, config.CALL_RATE);
+  }
+  else
+  {
+    var err = new Error('Aborting process');
+    err.name = 'InvalidArguments';
+    err.level = 'Fatal';
+    err.first_arg = UserInputOne;
+    err.second_arg = UserInputTwo;
+
+    console.error(err);
+    process.abort();
   }
 }
 
