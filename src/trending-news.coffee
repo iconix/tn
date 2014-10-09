@@ -1,8 +1,8 @@
 http = require 'http'
 storage = require 'node-persist'
 {EventEmitter} = require 'events'
+defaultLogger = require('bunyan').createLogger({name: 'tn'})
 
-logger = require '../lib/logger'
 hashCode = require '../lib/hash-code'
 config = require '../lib/config'
 require '../lib/mock-index-stream'
@@ -44,14 +44,15 @@ class TrendingNews extends EventEmitter
   results = null
   get results: -> results
 
-  classObj = null # private var
+   # private vars
+  classObj = log = session = null
 
   ###*
     * Constructs a new framework for getting news
     *
     * @constructs TrendingNews
   ###
-  constructor: (mode = 'default', score = 100) ->
+  constructor: (mode = 'default', score = 100, logger = defaultLogger) ->
     if (!mode)
       mode = 'default'
 
@@ -59,21 +60,25 @@ class TrendingNews extends EventEmitter
       score = 100
 
     switch mode
-      when 'debug', 'prod' then logger.debugLevel = 'info'
-      when 'test' then logger.debugLevel = 'error'
-      else mode = 'default'
+      when 'trace' then logLevelPretty = 'trace'
+      when 'debug' then logLevelPretty = 'debug'
+      when 'prod' then logLevelPretty = 'info'
+      when 'test' then logLevelPretty = 'error'
+      else logLevelPretty = 'warn'
+
+    log = logger
+    log.level logLevelPretty
+    log.warn 'in ' + mode +
+      'Mode (lowest log level: '+ logLevelPretty + ')'
 
     switch mode
       when 'prod'
         process.env.NOCK_OFF = true
-        logger.log 'warn', 'Nock is OFF!'
-      else logger.log 'warn', 'Nock is ON'
-
-    logger.log 'warn', 'in ' + mode +
-      'Mode (lowest log level: '+ logger.debugLevel + ')'
+        log.warn 'Nock is OFF!'
+      else log.warn 'Nock is ON'
 
     scoreThreshold = score
-    logger.log 'warn', 'scoreThreshold = ' + scoreThreshold
+    log.warn 'scoreThreshold = ' + scoreThreshold
 
   ###*
     * Removes news items that fall below the trending score threshold
@@ -111,7 +116,7 @@ class TrendingNews extends EventEmitter
 
     for item in newsItems
       titleHash = hashCode.hash item.title
-      logger.log 'info', titleHash + ', ' + item.title
+      session.debug titleHash + ', ' + item.title
       seenWhen = storage.getItem(titleHash)
 
       if (seenWhen == undefined)
@@ -128,7 +133,7 @@ class TrendingNews extends EventEmitter
           err.title = item.title
           err.title_hash = titleHash
 
-          logger.log 'warn', err
+          session.warn err
           seenWhen = [ new Date(Date.now()) ]
 
       storage.setItem(titleHash, seenWhen)
@@ -149,7 +154,7 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   getLatestNewsForTopic = (topic, resultsCallback) ->
-    logger.log 'info', 'Getting all news for topic: ' + topic + '...'
+    session.debug 'Getting all news for topic: ' + topic + '...'
 
     options = {
       hostname: config.REQUEST_HOSTNAME
@@ -178,20 +183,20 @@ class TrendingNews extends EventEmitter
             data = {link_list: []}
 
           allNewsItems = data.link_list # strip topic name and status code
-          logger.log 'info', '# ' + topic +
+          session.debug '# ' + topic +
             ' items before filter: ' + allNewsItems.length
 
           # TODO dispatchStorageTask - store all response data asynchronously
 
           filteredItems = filterNewsByTrendScore allNewsItems
-          logger.log 'info', '# ' + topic +
+          session.debug '# ' + topic +
             ' items after filter: ' + filteredItems.length
 
           unseenItems = filterNewsIfSeenBefore filteredItems
-          logger.log 'info', '# ' + topic +
+          session.debug '# ' + topic +
             ' items never seen before: ' + unseenItems.length
 
-          logger.log 'info', '---'
+          session.debug '---'
 
           resultsCallback topic, unseenItems
         else
@@ -252,7 +257,7 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   logResults: (res) ->
-    logger.log 'warn', res
+    session.warn res
 
   ###*
     * For given topic, log error.
@@ -269,7 +274,7 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   handleError: (error, topic, provideEmptyResult) ->
-    logger.log 'error', error
+    session.error error
     resultsCallback topic, [] if provideEmptyResult
 
   ###*
@@ -279,11 +284,13 @@ class TrendingNews extends EventEmitter
     * @memberof TrendingNews
     * @instance
   ###
-  getLatest: (sessionId) ->
+  getLatest: (sesh = defaultLogger) ->
+    session = sesh
+    session.level log.level()
     classObj = this
     results = {}
 
-    logger.log 'info', 'Getting latest trending news items for ' +
+    session.info 'Getting latest trending news items for ' +
       config.TOPICS.length + ' topic(s)...'
 
     for topic in config.TOPICS
@@ -293,7 +300,6 @@ class TrendingNews extends EventEmitter
   * A module for the {@link TrendingNews} class
   * @module trending-news
   *
-  * @requires logger
   * @requires hash-code
   * @requires config
   * @requires mock-index-stream

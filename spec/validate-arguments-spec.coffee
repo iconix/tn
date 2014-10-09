@@ -2,7 +2,7 @@ validateArguments = require('../lib/validate-arguments')
 
 describe "validateArguments", ->
 
-  it 'should ensure that the first arg is a valid string, and the second arg is a number 1..100 inclusive', ->
+  it 'should ensure that the run mode is a valid string, and the score threshold is a number 1..100 inclusive', ->
     # NOTE: parameters of validateArguments(...) come from command-line arguments,
     #       and command-line arguments are strings!
 

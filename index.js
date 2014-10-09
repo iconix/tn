@@ -1,15 +1,14 @@
-var clc = require('cli-color');
 var instapush = require('instapush');
 var nconf = require('nconf');
 var uuid = require('node-uuid');
+var log = require('bunyan').createLogger({name: 'tn'});
 
 var TrendingNews = require('./lib/trending-news');
 var config = require('./lib/config');
 var validateArguments = require('./lib/validate-arguments');
 
-var red = clc.redBright;
+var trendingNews, callRateIntervalObj, notifyIntervalObj, session;
 var notificationsSent = true;
-var trendingNews, callRateIntervalObj, notifyIntervalObj;
 
 nconf.file('instapush_settings.json')
      .env();
@@ -21,7 +20,7 @@ instapush.settings({
 });
 
 var onExit = function(signal) {
-  console.log('Shutting down process on ' + signal + '...');
+  session.warn('Shutting down process on ' + signal + '...');
 
   // non-blocking check if mobile notifications have been sent before exiting
   setInterval(function() {
@@ -40,18 +39,14 @@ var addProcessListeners = function() {
   });
 
   process.on('uncaughtException', function (e) {
-      var err = new Error('Aborting process');
-      err.name = 'UncaughtException';
-      err.level = 'Fatal'; // there is no fixing this
-      err.original_error = e;
-
-      console.error(err);
+      session.fatal('Aborting process on Uncaught Exception...');
+      session.fatal(e);
       process.abort();
   });
 }
 
 var sendNotifications = function(results) {
-  console.log('Sending notifications');
+  session.info('Sending notifications');
 
   var keys = Object.keys(results);
   // TODO double for-loop?
@@ -69,7 +64,7 @@ var sendNotifications = function(results) {
         titleStr += ' ' + news.title + ' |';
       }
 
-      console.log(titleStr);
+      session.info(titleStr);
 
       instapush.notify({
           'event': 'trend',
@@ -77,12 +72,12 @@ var sendNotifications = function(results) {
             'topic': topic,
             'title_str': titleStr
           }
-        }, function(err, response) { console.log(response); }
+        }, function(err, response) { session.info(response); }
       );
     }
   }
 
-  console.log('Notifications sent!');
+  session.info('Notifications sent!');
   notificationsSent = true;
 }
 
@@ -91,19 +86,19 @@ var generateUuid = function() {
 }
 
 var executeMainLoop = function() {
-  console.log('Get latest at ' + new Date(Date.now()));
+  session = log.child({session_id: generateUuid()});
   notificationsSent = false;
-  trendingNews.getLatest(generateUuid());
+  trendingNews.getLatest(session);
 }
 
 var main = function() {
-  var areValidArgs = validateArguments(UserInputOne, UserInputTwo);
+  var areValidArgs = validateArguments(UserRunMode, UserScoreThreshold, log);
 
   if (areValidArgs)
   {
     addProcessListeners();
 
-    trendingNews = new TrendingNews(UserInputOne, UserInputTwo);
+    trendingNews = new TrendingNews(UserRunMode, UserScoreThreshold, log);
     trendingNews.on('end', function(results) {
       sendNotifications(results)
     });
@@ -121,10 +116,10 @@ var main = function() {
     var err = new Error('Aborting process');
     err.name = 'InvalidArguments';
     err.level = 'Fatal';
-    err.first_arg = UserInputOne;
-    err.second_arg = UserInputTwo;
+    err.first_arg = UserRunMode;
+    err.second_arg = UserScoreThreshold;
 
-    console.error(err);
+    log.fatal(err);
     process.abort();
   }
 }
