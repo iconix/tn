@@ -279,7 +279,7 @@ class TrendingNews extends EventEmitter
     * @memberof TrendingNews
     * @instance
   ###
-  getLatest: ->
+  getLatest: (sessionId) ->
     classObj = this
     results = {}
 

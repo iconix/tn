@@ -1,6 +1,7 @@
 var clc = require('cli-color');
 var instapush = require('instapush');
 var nconf = require('nconf');
+var uuid = require('node-uuid');
 
 var TrendingNews = require('./lib/trending-news');
 var config = require('./lib/config');
@@ -85,10 +86,14 @@ var sendNotifications = function(results) {
   notificationsSent = true;
 }
 
+var generateUuid = function() {
+  return uuid.v1(); // timestamp-based UUID
+}
+
 var executeMainLoop = function() {
   console.log('Get latest at ' + new Date(Date.now()));
   notificationsSent = false;
-  trendingNews.getLatest();
+  trendingNews.getLatest(generateUuid());
 }
 
 var main = function() {
