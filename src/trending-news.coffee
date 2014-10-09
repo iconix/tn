@@ -13,13 +13,13 @@ require '../lib/mock-index-stream'
   * @param [runMode='default'] {string} determines logging level and whether to use Nock
   * @param [scoreThreshold=100] {number} lowest allowed trending score for any news item
   *
-  * @example How to create an instance, method(1)
+  * @example How to create an instance, method 1
   *   new TrendingNews(runMode, scoreThreshold)
   *
-  * @example How to create an instance, method(2)
+  * @example How to create an instance, method 2
   *   new TrendingNews(runMode)
   *
-  * @example How to create an instance, method(3)
+  * @example How to create an instance, method 3
   *   new TrendingNews(scoreThreshold)
   *
   * @property {object} results - latest news results [readonly]
@@ -47,7 +47,8 @@ class TrendingNews extends EventEmitter
   classObj = null # private var
 
   ###*
-    * @description Constructs a new framework for getting news
+    * Constructs a new framework for getting news
+    *
     * @constructs TrendingNews
   ###
   constructor: (mode = 'default', score = 100) ->
@@ -75,7 +76,7 @@ class TrendingNews extends EventEmitter
     logger.log 'warn', 'scoreThreshold = ' + scoreThreshold
 
   ###*
-    * @description Removes news items that fall below the trending score threshold
+    * Removes news items that fall below the trending score threshold
     *
     * @param newsItems {Array<Object>} list of news items to filter
     * @return {Array<Object>} list of news items, filtered by trending score
@@ -89,7 +90,9 @@ class TrendingNews extends EventEmitter
     newsItems.filter (item) -> item.trending_score >= scoreThreshold
 
   ###*
-    * @description Removes news items that have been seen before, determined by a hash of its title
+    * Removes news items that have been seen before, determined by a hash of its title.
+    * If there is a problem recording a news item as seen (due to data corruption in a previous
+    * cycle), the previous 'seen' history is deleted and lost as the new record is created.
     *
     * @param newsItems {Array<Object>} list of news items to filter
     * @return {Array<Object>} list of news items, filtered by seen before status
@@ -119,7 +122,7 @@ class TrendingNews extends EventEmitter
           seenWhen.push new Date(Date.now())
         catch TypeError
           err = new Error('Problem persisting storage in a previous cycle'
-            + ' - marking as seen')
+            + ' - restarting the history of this news item')
           err.name = "Storage"
           err.level = "Warning" # means fix below not required to continue
           err.title = item.title
@@ -133,7 +136,9 @@ class TrendingNews extends EventEmitter
     return unseen
 
   ###*
-    * @description Makes get call to an API for news about a topic
+    * Makes get call to an API for news about a topic.
+    * If there is a problem retrieving news for a topic, the results callback
+    * is called with an empty list of results.
     *
     * @param topic {String} topic to get news about
     * @param resultsCallback {Function} function to call on the success of request
@@ -217,8 +222,8 @@ class TrendingNews extends EventEmitter
     )
 
   ###*
-    * @description Stores the resulting news items of a topic.
-    * Waits for the results for all topics before emitting the end event
+    * Stores the resultant news items of a topic.
+    * Waits for the results for all topics before emitting the end event.
     *
     * @param topic {String} topic to get news about
     * @param result {Array<Object>}
@@ -236,7 +241,7 @@ class TrendingNews extends EventEmitter
       classObj.emit('end', results)
 
   ###*
-    * @description Logs results of processing
+    * Logs results at the end of the TrendingNews event cycle.
     * Logs with level 'warn', public to allow for unit testing, although marked 'private'
     *
     * @param res {Object} results to log
@@ -250,7 +255,7 @@ class TrendingNews extends EventEmitter
     logger.log 'warn', res
 
   ###*
-    * @description For given topic, log error.
+    * For given topic, log error.
     * Can also provide an empty result for topic, if boolean set to true.
     * Public to allow for unit testing, although marked 'private'
     *
@@ -268,7 +273,7 @@ class TrendingNews extends EventEmitter
     resultsCallback topic, [] if provideEmptyResult
 
   ###*
-    * @description Processes every news topic in an asynchronous manner
+    * Processes every news topic in an asynchronous manner
     *
     * @method getLatest
     * @memberof TrendingNews
