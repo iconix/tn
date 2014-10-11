@@ -1,7 +1,6 @@
 http = require 'http'
 storage = require 'node-persist'
 {EventEmitter} = require 'events'
-defaultLogger = require('bunyan').createLogger({name: 'tn'})
 
 hashCode = require '../lib/hash-code'
 config = require '../lib/config'
@@ -33,52 +32,27 @@ class TrendingNews extends EventEmitter
   get = (props) => @::__defineGetter__ name, getter for name, getter of props
   set = (props) => @::__defineSetter__ name, setter for name, setter of props
 
-  # scoreThreshold and results are private shared - among all instances of class
+  # instObj and session are private shared - among all instances of class
   # (http://book.mixu.net/node/ch6.html)
 
-  # readonly
-  scoreThreshold = 100
-  get scoreThreshold: -> scoreThreshold
-
-  # readonly
-  results = null
-  get results: -> results
-
    # private vars
-  classObj = log = session = null
+  instObj = session = null
+
+  # readonly instance var
+  get results: -> @_results
+
 
   ###*
     * Constructs a new framework for getting news
     *
     * @constructs TrendingNews
   ###
-  constructor: (mode = 'default', score = 100, logger = defaultLogger) ->
-    if (!mode)
-      mode = 'default'
+  constructor: (s = config.LOG)->
+    session = s
 
-    if (!score)
-      score = 100
-
-    switch mode
-      when 'trace' then logLevelPretty = 'trace'
-      when 'debug' then logLevelPretty = 'debug'
-      when 'prod' then logLevelPretty = 'info'
-      when 'test' then logLevelPretty = 'error'
-      else logLevelPretty = 'warn'
-
-    log = logger
-    log.level logLevelPretty
-    log.warn 'in ' + mode +
-      'Mode (lowest log level: '+ logLevelPretty + ')'
-
-    switch mode
-      when 'prod'
-        process.env.NOCK_OFF = true
-        log.warn 'Nock is OFF!'
-      else log.warn 'Nock is ON'
-
-    scoreThreshold = score
-    log.warn 'scoreThreshold = ' + scoreThreshold
+    session.level config.LOG_LEVEL_THRESHOLD
+    instObj = @
+    @_results = {}
 
   ###*
     * Removes news items that fall below the trending score threshold
@@ -92,7 +66,7 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   filterNewsByTrendScore = (newsItems) ->
-    newsItems.filter (item) -> item.trending_score >= scoreThreshold
+    newsItems.filter (item) -> item.trending_score >= config.SCORE_THRESHOLD
 
   ###*
     * Removes news items that have been seen before, determined by a hash of its title.
@@ -179,7 +153,7 @@ class TrendingNews extends EventEmitter
             err.level = "Error" # means fix below required to continue
             err.bad_response = data
 
-            classObj.handleError err, topic, false
+            instObj.handleError err, topic, false
             data = {link_list: []}
 
           allNewsItems = data.link_list # strip topic name and status code
@@ -206,7 +180,7 @@ class TrendingNews extends EventEmitter
           err.topic = topic
           err.http_code = response.statusCode
 
-          classObj.handleError err, topic, true
+          instObj.handleError err, topic, true
       )
 
       response.on('error', (e) ->
@@ -215,7 +189,7 @@ class TrendingNews extends EventEmitter
         err.level = "Error"
         err.topic = topic
 
-        classObj.handleError err, topic, true
+        instObj.handleError err, topic, true
       )
     ).on('error', (e) -> # on request error
       err = new Error(e.message)
@@ -223,7 +197,7 @@ class TrendingNews extends EventEmitter
       err.level = "Error"
       err.topic = topic
 
-      classObj.handleError err, topic, true
+      instObj.handleError err, topic, true
     )
 
   ###*
@@ -239,15 +213,16 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   resultsCallback = (topic, result) ->
-    results[topic] = result
+    res = instObj.results
+    res[topic] = result
 
-    if (Object.keys(results).length == config.TOPICS.length)
-      classObj.logResults results
-      classObj.emit('end', results)
+    if (Object.keys(res).length == config.TOPICS.length)
+      instObj.logResults res
+      instObj.emit('end', res)
 
   ###*
     * Logs results at the end of the TrendingNews event cycle.
-    * Logs with level 'warn', public to allow for unit testing, although marked 'private'
+    * Logs with level 'info', public to allow for unit testing, although marked 'private'
     *
     * @param res {Object} results to log
     *
@@ -257,7 +232,7 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   logResults: (res) ->
-    session.warn res
+    session.info res
 
   ###*
     * For given topic, log error.
@@ -284,12 +259,7 @@ class TrendingNews extends EventEmitter
     * @memberof TrendingNews
     * @instance
   ###
-  getLatest: (sesh = defaultLogger) ->
-    session = sesh
-    session.level log.level()
-    classObj = this
-    results = {}
-
+  getLatest: ->
     session.info 'Getting latest trending news items for ' +
       config.TOPICS.length + ' topic(s)...'
 

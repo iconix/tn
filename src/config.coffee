@@ -3,6 +3,8 @@
   * @module config
 ###
 
+defaultLogger = require('bunyan').createLogger({name: 'tn'})
+
 define = (name, value, isWritable) ->
   Object.defineProperty exports, name, {
     value: value
@@ -47,7 +49,7 @@ config = () ->
     * @memberof config
     * @instance
   ###
-  define 'STORAGE_DIR', '/data/tn', true
+  define 'STORAGE_DIR', 'TNStorage', true
 
   ###*
     * @description Domain name of the news API [readonly]
@@ -113,5 +115,54 @@ config = () ->
     * @instance
   ###
   define 'POLL_TO_EXIT_RATE', 1000, false # 1-second interval
+
+  ###*
+    * @description Determines logging level and whether to use Nock.
+    * Configurable from command line.
+    *
+    * @constant RUN_MODE
+    * @memberof config
+    * @instance
+  ###
+  define 'RUN_MODE', 'default', true
+
+  ###*
+    * @description Lowest-allowed trending score for any news item.
+    * Configurable from command line.
+    *
+    * @constant SCORE_THRESHOLD
+    * @memberof config
+    * @instance
+  ###
+  define 'SCORE_THRESHOLD', 100, true
+
+  ###*
+    * @description Logger object with app name set [readonly]
+    *
+    * @constant LOG
+    * @memberof config
+    * @instance
+  ###
+  define 'LOG', defaultLogger, false
+
+  ###*
+    * @description Logger object with app name set
+    * Indirectly configurable from command line via RUN_MODE.
+    *
+    * @constant LOG_LEVEL_THRESHOLD
+    * @memberof config
+    * @instance
+  ###
+  define 'LOG_LEVEL_THRESHOLD', 'info', true
+
+  ###*
+    * @description Determines whether to send notifications to mobile
+    * Indirectly configurable from command line via RUN_MODE.
+    *
+    * @constant SEND_NOTIFICATIONS
+    * @memberof config
+    * @instance
+  ###
+  define 'SEND_NOTIFICATIONS', false, true
 
 config()

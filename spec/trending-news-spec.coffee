@@ -7,6 +7,7 @@ config = require '../lib/config'
 
 httpDelay = 1000 # artifical pause to verify asynchronicity
 config.STORAGE_DIR = 'TestStorage'
+config.LOG_LEVEL_THRESHOLD = 'FATAL'
 
 describe "TrendingNews (basic tests)", ->
 
@@ -43,10 +44,10 @@ describe "TrendingNews (basic tests)", ->
     storage.clear()
 
   it 'should call available news api and find 1 news item with score >= 100', (done) ->
-
     # given
-    newsInstance = new TrendingNews 'test'
+    newsInstance = new TrendingNews
     config.TOPICS = ['Basic']
+    config.SCORE_THRESHOLD = 100
 
     # when
     newsInstance.getLatest()
@@ -59,9 +60,9 @@ describe "TrendingNews (basic tests)", ->
     )
 
   it 'should call available news api and find 3 news items with score >= 50', (done) ->
-
-    newsInstance = new TrendingNews 'test', 50
+    newsInstance = new TrendingNews
     config.TOPICS = ['Basic']
+    config.SCORE_THRESHOLD = 50
 
     newsInstance.getLatest()
 
@@ -72,9 +73,9 @@ describe "TrendingNews (basic tests)", ->
     )
 
   it 'should handle call to available news api that has 0 news items', (done) ->
-
-    newsInstance = new TrendingNews 'test', 50
+    newsInstance = new TrendingNews
     config.TOPICS = ['Empty']
+    config.SCORE_THRESHOLD = 50
 
     newsInstance.getLatest()
 
@@ -104,14 +105,13 @@ describe "TrendingNews (tests for when things go wrong)", ->
       'transfer-encoding': 'chunked',
       connection: 'keep-alive' })
 
-  newsInstance = new TrendingNews 'test'
-
   afterEach ->
     storage.clear()
 
   it 'should handle news api that cannot be found (404)', (done) ->
-
+    newsInstance = new TrendingNews
     config.TOPICS = ['Error']
+    config.SCORE_THRESHOLD = 100
 
     newsInstance.getLatest()
 
@@ -123,6 +123,8 @@ describe "TrendingNews (tests for when things go wrong)", ->
     )
 
   it 'should handle bad request to news api', (done) ->
+    newsInstance = new TrendingNews
+    config.SCORE_THRESHOLD = 100
 
     newsInstance.getLatest()
 
@@ -134,6 +136,8 @@ describe "TrendingNews (tests for when things go wrong)", ->
     )
 
   xit 'should handle news api that does not respond', (done) -> # disabled spec
+    newsInstance = new TrendingNews
+    config.SCORE_THRESHOLD = 100
 
     newsInstance.getLatest()
 
@@ -144,8 +148,9 @@ describe "TrendingNews (tests for when things go wrong)", ->
     )
 
   it 'should handle news api that does not return JSON', (done) ->
-
+    newsInstance = new TrendingNews
     config.TOPICS = ['NotJson']
+    config.SCORE_THRESHOLD = 100
 
     newsInstance.getLatest()
 
@@ -195,32 +200,30 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
     storage.clear()
 
   it 'should call news api twice with same items and store exactly one copy of each item', (done) ->
-
-    newsInstance = new TrendingNews 'test', 50
     config.TOPICS = ['Seen']
-    numCalls = 0
+    config.SCORE_THRESHOLD = 50
 
-    newsInstance.getLatest()
-    newsInstance.getLatest()
+    newsInstance1 = new TrendingNews
+    newsInstance1.getLatest()
 
-    spyOn(newsInstance, "logResults").andCallFake((res) ->
-      expect(newsInstance.logResults).toHaveBeenCalled()
+    spyOn(newsInstance1, "logResults").andCallFake((res) ->
+      expect(newsInstance1.logResults).toHaveBeenCalled()
+      expect(newsInstance1.results.Seen.length).toEqual(3)
 
-      if (numCalls == 0)
-        expect(newsInstance.results.Seen.length).toEqual(3)
-      
-      if (numCalls == 1)
-        expect(newsInstance.results.Seen.length).toEqual(0)
+      newsInstance2 = new TrendingNews
+      newsInstance2.getLatest()
 
-      numCalls++
-
-      done()
+      spyOn(newsInstance2, "logResults").andCallFake((res) ->
+        expect(newsInstance2.logResults).toHaveBeenCalled()
+        expect(newsInstance2.results.Seen.length).toEqual(0)
+        done()
+      )
     )
 
   it 'should call news api with duplicate news item and store exactly one copy of item', (done) ->
-
-    newsInstance = new TrendingNews 'test'
+    newsInstance = new TrendingNews
     config.TOPICS = ['Duplicate']
+    config.SCORE_THRESHOLD = 50
 
     newsInstance.getLatest()
 
@@ -251,14 +254,13 @@ describe "TrendingNews (tests with multiple topics)", ->
       'transfer-encoding': 'chunked',
       connection: 'keep-alive' })
 
-  newsInstance = new TrendingNews 'test'
-
   afterEach ->
     storage.clear()
 
   it 'should handle news api that has both good and bad responses', (done) ->
-
+    newsInstance = new TrendingNews
     config.TOPICS = ['Fine', 'Redirect']
+    config.SCORE_THRESHOLD = 50
 
     newsInstance.getLatest()
 
@@ -288,8 +290,9 @@ describe "TrendingNews (tests with multiple topics)", ->
     )
 
   it 'should handle both good and bad requests to news api', (done) ->
-
+    newsInstance = new TrendingNews
     config.TOPICS = ['Fine', 'Error']
+    config.SCORE_THRESHOLD = 50
 
     newsInstance.getLatest()
 
@@ -319,8 +322,9 @@ describe "TrendingNews (tests with multiple topics)", ->
     )
 
   xit 'should handle news api that does and does not respond', (done) ->
-
+    newsInstance = new TrendingNews
     config.TOPICS = ['Fine', 'Error']
+    config.SCORE_THRESHOLD = 50
 
     newsInstance.getLatest()
 
