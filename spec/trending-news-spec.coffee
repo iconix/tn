@@ -55,7 +55,7 @@ describe "TrendingNews (basic tests)", ->
     # then
     spyOn(newsInstance, 'logResults').andCallFake(() ->
       expect(newsInstance.logResults).toHaveBeenCalled()
-      expect(newsInstance.results.Basic.length).toEqual(1)
+      expect(newsInstance.results.news_items.Basic.length).toEqual(1)
       done()
     )
 
@@ -68,7 +68,7 @@ describe "TrendingNews (basic tests)", ->
 
     spyOn(newsInstance, 'logResults').andCallFake(() ->
       expect(newsInstance.logResults).toHaveBeenCalled()
-      expect(newsInstance.results.Basic.length).toEqual(3)
+      expect(newsInstance.results.news_items.Basic.length).toEqual(3)
       done()
     )
 
@@ -81,7 +81,7 @@ describe "TrendingNews (basic tests)", ->
 
     spyOn(newsInstance, 'logResults').andCallFake(() ->
       expect(newsInstance.logResults).toHaveBeenCalled()
-      expect(newsInstance.results.Empty.length).toEqual(0)
+      expect(newsInstance.results.news_items.Empty.length).toEqual(0)
       done()
     )
 
@@ -118,7 +118,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
         .toHaveBeenCalledWith({ name : 'BadStatusCode', level : 'Error', topic : 'Error', http_code : 404 }, 'Error', true)
-      expect(Object.keys(newsInstance.results).length).toEqual(0)
+      expect(Object.keys(newsInstance.results.news_items).length).toEqual(0)
       done()
     )
 
@@ -131,7 +131,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
         .toHaveBeenCalledWith({ name : 'BadRequest', level : 'Error', topic : 'Error' }, 'Error', true)
-      expect(Object.keys(newsInstance.results).length).toEqual(0)
+      expect(Object.keys(newsInstance.results.news_items).length).toEqual(0)
       done()
     )
 
@@ -161,7 +161,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'logResults').andCallFake(() ->
       expect(newsInstance.logResults).toHaveBeenCalled()
-      expect(newsInstance.results.NotJson.length).toEqual(0)
+      expect(newsInstance.results.news_items.NotJson.length).toEqual(0)
       done()
     )
 
@@ -208,14 +208,14 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
 
     spyOn(newsInstance1, "logResults").andCallFake((res) ->
       expect(newsInstance1.logResults).toHaveBeenCalled()
-      expect(newsInstance1.results.Seen.length).toEqual(3)
+      expect(newsInstance1.results.news_items.Seen.length).toEqual(3)
 
       newsInstance2 = new TrendingNews
       newsInstance2.getLatest()
 
       spyOn(newsInstance2, "logResults").andCallFake((res) ->
         expect(newsInstance2.logResults).toHaveBeenCalled()
-        expect(newsInstance2.results.Seen.length).toEqual(0)
+        expect(newsInstance2.results.news_items.Seen.length).toEqual(0)
         done()
       )
     )
@@ -229,7 +229,7 @@ describe "TrendingNews (tests for 'seen before' mechanism [& persistent storage]
 
     spyOn(newsInstance, "logResults").andCallFake((res) ->
       expect(newsInstance.logResults).toHaveBeenCalled()
-      expect(newsInstance.results.Duplicate.length).toEqual(1)
+      expect(newsInstance.results.news_items.Duplicate.length).toEqual(1)
       done()
     )
 
@@ -271,9 +271,9 @@ describe "TrendingNews (tests with multiple topics)", ->
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
-        expect(Object.keys(newsInstance.results).length).toEqual(2)
-        expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.Redirect.length).toEqual(0)
+        expect(Object.keys(newsInstance.results.news_items).length).toEqual(2)
+        expect(newsInstance.results.news_items.Fine.length).toEqual(1)
+        expect(newsInstance.results.news_items.Redirect.length).toEqual(0)
       done()
     )
 
@@ -283,9 +283,9 @@ describe "TrendingNews (tests with multiple topics)", ->
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
-        expect(Object.keys(newsInstance.results).length).toEqual(2)
-        expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.Redirect.length).toEqual(0)
+        expect(Object.keys(newsInstance.results.news_items).length).toEqual(2)
+        expect(newsInstance.results.news_items.Fine.length).toEqual(1)
+        expect(newsInstance.results.news_items.Redirect.length).toEqual(0)
       done()
     )
 
@@ -303,9 +303,9 @@ describe "TrendingNews (tests with multiple topics)", ->
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
-        expect(Object.keys(newsInstance.results).length).toEqual(2)
-        expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.Error.length).toEqual(0)
+        expect(Object.keys(newsInstance.results.news_items).length).toEqual(2)
+        expect(newsInstance.results.news_items.Fine.length).toEqual(1)
+        expect(newsInstance.results.news_items.Error.length).toEqual(0)
       done()
     )
 
@@ -315,9 +315,9 @@ describe "TrendingNews (tests with multiple topics)", ->
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
-        expect(Object.keys(newsInstance.results).length).toEqual(2)
-        expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.Error.length).toEqual(0)
+        expect(Object.keys(newsInstance.results.news_items).length).toEqual(2)
+        expect(newsInstance.results.news_items.Fine.length).toEqual(1)
+        expect(newsInstance.results.news_items.Error.length).toEqual(0)
       done()
     )
 
@@ -335,9 +335,9 @@ describe "TrendingNews (tests with multiple topics)", ->
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
-        expect(Object.keys(newsInstance.results).length).toEqual(2)
-        expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.Error.length).toEqual(0)
+        expect(Object.keys(newsInstance.results.news_items).length).toEqual(2)
+        expect(newsInstance.results.news_items.Fine.length).toEqual(1)
+        expect(newsInstance.results.news_items.Error.length).toEqual(0)
       done()
     )
 
@@ -347,8 +347,8 @@ describe "TrendingNews (tests with multiple topics)", ->
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
-        expect(Object.keys(newsInstance.results).length).toEqual(2)
-        expect(newsInstance.results.Fine.length).toEqual(1)
-        expect(newsInstance.results.Error.length).toEqual(0)
+        expect(Object.keys(newsInstance.results.news_items).length).toEqual(2)
+        expect(newsInstance.results.news_items.Fine.length).toEqual(1)
+        expect(newsInstance.results.news_items.Error.length).toEqual(0)
       done()
     )

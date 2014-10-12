@@ -54,7 +54,7 @@ class TrendingNews extends EventEmitter
     instObj = @
 
     @_results = {
-      'items_with_200_response': {}
+      'items_with_response': {}
       'items_above_score': {}
       'items_not_seen_before': {}
       'news_items': {}
