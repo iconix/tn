@@ -20,7 +20,7 @@ instapush.settings({
 });
 
 var onExit = function(signal) {
-  session.warn('Shutting down process on ' + signal + '...');
+  session.warn({shutdown_signal: signal}, 'Shutting down process...');
 
   // non-blocking check if mobile notifications have been sent before exiting
   setInterval(function() {
@@ -46,16 +46,44 @@ var addProcessListeners = function() {
   });
 }
 
-var sendNotifications = function(results) {
-  if (!config.SEND_NOTIFICATIONS)
+var sentSummary, sendAttempts;
+var reallySend = function(topic, titleStr, numItemsSent) {
+  session.debug({topic: topic, notification_content: titleStr});
+  if (config.SEND_NOTIFICATIONS)
   {
-    session.info('Notifications disabled');
-    notificationsSent = true;
-    return;
+    instapush.notify({
+      'event': 'trend',
+      'trackers': {
+        'topic': topic,
+        'title_str': titleStr
+      }
+    }, function(err, response) {
+      session.debug(response);
+
+      if (response.status == 200)
+        sentSummary['items_with_notifications'][topic] = numItemsSent;
+
+      sendAttempts++;
+    });
   }
+  else
+  {
+    sentSummary['items_with_notifications'][topic] = numItemsSent;
+    sendAttempts++;
+  }
+}
 
-  session.info('Sending notifications');
+var sendNotifications = function(results) {
+  if (config.SEND_NOTIFICATIONS)
+    session.info('Sending notifications');
+  else
+    session.info('Notifications disabled');
 
+  sentSummary = {
+    'items_with_notifications': {}
+  };
+
+  sendAttempts = 0;
   var keys = Object.keys(results);
   // TODO double for-loop?
   for (var tIndex = 0; tIndex < keys.length; tIndex++) {
@@ -67,26 +95,49 @@ var sendNotifications = function(results) {
     {
       var titleStr = '|';
 
+      var numItemsSent = 0;
       for (var nIndex = 0; nIndex < topicalNews.length; nIndex++) {
         var news = topicalNews[nIndex];
         titleStr += ' ' + news.title + ' |';
+        numItemsSent++;
       }
 
-      session.info(titleStr);
-
-      instapush.notify({
-          'event': 'trend',
-          'trackers': {
-            'topic': topic,
-            'title_str': titleStr
-          }
-        }, function(err, response) { session.info(response); }
-      );
+      // TODO this function will be inlined once I make sendNotifications a module
+      reallySend(topic, titleStr, numItemsSent);
+    }
+    else
+    {
+      sendAttempts++;
     }
   }
 
-  session.info('Notifications sent!');
-  notificationsSent = true;
+  var sendIntervalObj = setInterval(function() {
+    if (sendAttempts == keys.length)
+    {
+      clearInterval(sendIntervalObj);
+
+      if (config.SEND_NOTIFICATIONS)
+      {
+        session.info('Notifications sent!');
+      }
+      session.info(sentSummary);
+      notificationsSent = true;
+    }
+  }, config.POLL_TO_EXIT_RATE);
+}
+
+var logAllConfigs = function() {
+  configsToLog = {};
+  for (var prop in config)
+  {
+    // skipping config.LOG since it is a complex object
+    if (config.hasOwnProperty(prop) && prop != 'LOG')
+    {
+      configsToLog[prop] = config[prop];
+    }
+  }
+
+  log.info({configs: configsToLog});
 }
 
 var setUserConfigs = function(runMode, scoreThreshold) {
@@ -110,22 +161,14 @@ var setUserConfigs = function(runMode, scoreThreshold) {
       logLevelPretty = 'info';
   }
 
-  switch (config.RUN_MODE) {
-    case 'prod':
-      process.env.NOCK_OFF = true;
-      log.info('Nock is OFF!');
-      config.STORAGE_DIR = '/data/tn';
-      log.info('Storage directory: ' + config.STORAGE_DIR);
-      config.SEND_NOTIFICATIONS = true;
-      break;
-    default:
-      log.info('Nock is ON');
-      log.warn('Sending notifications is disabled');
+  if (config.RUN_MODE == 'prod') {
+    config.DISABLE_NOCK = true;
+    config.STORAGE_DIR = '/data/tn';
+    config.SEND_NOTIFICATIONS = true;
   }
 
+  process.env.NOCK_OFF = config.DISABLE_NOCK;
   config.LOG_LEVEL_THRESHOLD = logLevelPretty;
-
-  log.info({run_mode: config.RUN_MODE, readable_level: config.LOG_LEVEL_THRESHOLD, score_threshold: config.SCORE_THRESHOLD});
 }
 
 var generateUuid = function() {
@@ -137,7 +180,7 @@ var executeMainLoop = function() {
 
   var trendingNews = new TrendingNews(session);
   trendingNews.on('end', function(results) {
-    sendNotifications(results)
+    sendNotifications(results.news_items);
   });
 
   notificationsSent = false;
@@ -151,6 +194,7 @@ var main = function() {
   {
     addProcessListeners();
     setUserConfigs(UserRunMode, UserScoreThreshold);
+    logAllConfigs();
 
     // initial call
     executeMainLoop();

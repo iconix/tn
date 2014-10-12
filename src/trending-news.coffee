@@ -52,7 +52,13 @@ class TrendingNews extends EventEmitter
 
     session.level config.LOG_LEVEL_THRESHOLD
     instObj = @
-    @_results = {}
+
+    @_results = {
+      'items_with_200_response': {}
+      'items_above_score': {}
+      'items_not_seen_before': {}
+      'news_items': {}
+    }
 
   ###*
     * Removes news items that fall below the trending score threshold
@@ -90,7 +96,7 @@ class TrendingNews extends EventEmitter
 
     for item in newsItems
       titleHash = hashCode.hash item.title
-      session.debug titleHash + ', ' + item.title
+      session.debug {title_hash: titleHash, title: item.title}
       seenWhen = storage.getItem(titleHash)
 
       if (seenWhen == undefined)
@@ -128,8 +134,6 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   getLatestNewsForTopic = (topic, resultsCallback) ->
-    session.debug 'Getting all news for topic: ' + topic + '...'
-
     options = {
       hostname: config.REQUEST_HOSTNAME
       path: config.REQUEST_PATH + encodeURIComponent(topic)
@@ -157,20 +161,18 @@ class TrendingNews extends EventEmitter
             data = {link_list: []}
 
           allNewsItems = data.link_list # strip topic name and status code
-          session.debug '# ' + topic +
-            ' items before filter: ' + allNewsItems.length
+          if allNewsItems.length > 0
+            instObj.results['items_with_response'][topic] = allNewsItems.length
 
           # TODO dispatchStorageTask - store all response data asynchronously
 
           filteredItems = filterNewsByTrendScore allNewsItems
-          session.debug '# ' + topic +
-            ' items after filter: ' + filteredItems.length
+          if filteredItems.length > 0
+            instObj.results['items_above_score'][topic] = filteredItems.length
 
           unseenItems = filterNewsIfSeenBefore filteredItems
-          session.debug '# ' + topic +
-            ' items never seen before: ' + unseenItems.length
-
-          session.debug '---'
+          if unseenItems.length > 0
+            instObj.results['items_not_seen_before'][topic] = unseenItems.length
 
           resultsCallback topic, unseenItems
         else
@@ -214,9 +216,12 @@ class TrendingNews extends EventEmitter
   ###
   resultsCallback = (topic, result) ->
     res = instObj.results
-    res[topic] = result
+    res['news_items'][topic] = result
 
-    if (Object.keys(res).length == config.TOPICS.length)
+    if (Object.keys(res.news_items).length == config.TOPICS.length)
+      # TODO 'off-by-one' bug in node-persist
+      res['total_items_stored'] = storage.length() - 1
+
       instObj.logResults res
       instObj.emit('end', res)
 
@@ -232,7 +237,7 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   logResults: (res) ->
-    session.info res
+    session.info {results: res}
 
   ###*
     * For given topic, log error.
@@ -260,8 +265,8 @@ class TrendingNews extends EventEmitter
     * @instance
   ###
   getLatest: ->
-    session.info 'Getting latest trending news items for ' +
-      config.TOPICS.length + ' topic(s)...'
+    session.info {num_topics: config.TOPICS.length},
+      'Getting latest trending news items...'
 
     for topic in config.TOPICS
       getLatestNewsForTopic topic, resultsCallback

@@ -99,15 +99,6 @@ config = () ->
   define 'CALL_RATE', 720000, false # 12-minute interval
 
   ###*
-    * @description How often to check if we're ready to send notifications [readonly]
-    *
-    * @constant POLL_TO_NOTIFY_RATE
-    * @memberof config
-    * @instance
-  ###
-  define 'POLL_TO_NOTIFY_RATE', 2000, false # 2-second interval
-
-  ###*
     * @description How often to check if it is safe to exit the process after receiving the kill signal [readonly]
     *
     * @constant POLL_TO_EXIT_RATE
@@ -115,6 +106,15 @@ config = () ->
     * @instance
   ###
   define 'POLL_TO_EXIT_RATE', 1000, false # 1-second interval
+
+  ###*
+    * @description Logger object with app name set [readonly]
+    *
+    * @constant LOG
+    * @memberof config
+    * @instance
+  ###
+  define 'LOG', defaultLogger, false
 
   ###*
     * @description Determines logging level and whether to use Nock.
@@ -137,15 +137,6 @@ config = () ->
   define 'SCORE_THRESHOLD', 100, true
 
   ###*
-    * @description Logger object with app name set [readonly]
-    *
-    * @constant LOG
-    * @memberof config
-    * @instance
-  ###
-  define 'LOG', defaultLogger, false
-
-  ###*
     * @description Logger object with app name set
     * Indirectly configurable from command line via RUN_MODE.
     *
@@ -157,12 +148,24 @@ config = () ->
 
   ###*
     * @description Determines whether to send notifications to mobile
-    * Indirectly configurable from command line via RUN_MODE.
+    * Indirectly configurable from command line via RUN_MODE
+    * ('prod' mode turns notifications on).
     *
     * @constant SEND_NOTIFICATIONS
     * @memberof config
     * @instance
   ###
   define 'SEND_NOTIFICATIONS', false, true
+
+  ###*
+    * @description Determines whether Nock is on and should intercept HTTP requests.
+    * Indirectly configurable from command line via RUN_MODE
+    * ('prod' mode turns Nock off).
+    *
+    * @constant DISABLE_NOCK
+    * @memberof config
+    * @instance
+  ###
+  define 'DISABLE_NOCK', false, true
 
 config()
