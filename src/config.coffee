@@ -1,8 +1,3 @@
-###*
-  * A module for the {@link config} namespace
-  * @module config
-###
-
 defaultLogger = require('bunyan').createLogger({name: 'tn'})
 
 define = (name, value, isWritable) ->
@@ -137,7 +132,7 @@ config = () ->
   define 'SCORE_THRESHOLD', 100, true
 
   ###*
-    * @description Logger object with app name set
+    * @description Logger object with app name set.
     * Indirectly configurable from command line via RUN_MODE.
     *
     * @constant LOG_LEVEL_THRESHOLD
@@ -147,7 +142,7 @@ config = () ->
   define 'LOG_LEVEL_THRESHOLD', 'info', true
 
   ###*
-    * @description Determines whether to send notifications to mobile
+    * @description Determines whether to send notifications to mobile.
     * Indirectly configurable from command line via RUN_MODE
     * ('prod' mode turns notifications on).
     *
@@ -169,3 +164,10 @@ config = () ->
   define 'DISABLE_NOCK', false, true
 
 config()
+
+###*
+  * A module for the {@link config} namespace
+  * @module config
+  *
+  * @requires bunyan
+###

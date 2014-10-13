@@ -9,20 +9,12 @@ require '../lib/mock-index-stream'
 ###*
   * @classdesc Gets up-to-date, trending news
   *
-  * @param [runMode='default'] {string} determines logging level and whether to use Nock
-  * @param [scoreThreshold=100] {number} lowest allowed trending score for any news item
+  * @param [sessionLogger={@link config#LOG}] {object} child logger that will include session_id with every log
   *
-  * @example How to create an instance, method 1
-  *   new TrendingNews(runMode, scoreThreshold)
+  * @example How to create an instance
+  *   new TrendingNews(sessionLogger)
   *
-  * @example How to create an instance, method 2
-  *   new TrendingNews(runMode)
-  *
-  * @example How to create an instance, method 3
-  *   new TrendingNews(scoreThreshold)
-  *
-  * @property {object} results - latest news results [readonly]
-  * @property {object} scoreThreshold - current lowest allowed trending score [readonly]
+  * @property {object} results - latest news results and run statistics [readonly]
   *
   * @class TrendingNews
   * @extends EventEmitter
@@ -47,8 +39,8 @@ class TrendingNews extends EventEmitter
     *
     * @constructs TrendingNews
   ###
-  constructor: (s = config.LOG)->
-    session = s
+  constructor: (sessionLogger = config.LOG)->
+    session = sessionLogger
 
     session.level config.LOG_LEVEL_THRESHOLD
     instObj = @
@@ -206,8 +198,8 @@ class TrendingNews extends EventEmitter
     * Stores the resultant news items of a topic.
     * Waits for the results for all topics before emitting the end event.
     *
-    * @param topic {String} topic to get news about
-    * @param result {Array<Object>}
+    * @param topic {String} topic with news
+    * @param result {Array<Object>} news to store
     *
     * @callback TrendingNews~resultsCallback
     * @memberof TrendingNews
@@ -274,6 +266,10 @@ class TrendingNews extends EventEmitter
 ###*
   * A module for the {@link TrendingNews} class
   * @module trending-news
+  *
+  * @requires http
+  * @requires node-persist
+  * @requires events
   *
   * @requires hash-code
   * @requires config

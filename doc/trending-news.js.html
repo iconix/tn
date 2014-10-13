@@ -50,10 +50,6 @@
 						</li>
 						
 						<li>
-							<a href="module-logger.html">logger</a>
-						</li>
-						
-						<li>
 							<a href="module-mock-index-stream.html">mock-index-stream</a>
 						</li>
 						
@@ -90,11 +86,11 @@
 					<ul class="dropdown-menu ">
 						
 						<li>
-							<a href="global.html#UserInputOne">UserInputOne</a>
+							<a href="global.html#UserRunMode">UserRunMode</a>
 						</li>
 						
 						<li>
-							<a href="global.html#UserInputTwo">UserInputTwo</a>
+							<a href="global.html#UserScoreThreshold">UserScoreThreshold</a>
 						</li>
 						
 
@@ -120,7 +116,7 @@
 	<article>
 		<pre
 			class="sunlight-highlight-javascript linenums">(function() {
-  var EventEmitter, TrendingNews, config, hashCode, http, logger, storage,
+  var EventEmitter, TrendingNews, config, hashCode, http, storage,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -129,8 +125,6 @@
   storage = require('node-persist');
 
   EventEmitter = require('events').EventEmitter;
-
-  logger = require('../lib/logger');
 
   hashCode = require('../lib/hash-code');
 
@@ -145,13 +139,13 @@
     * @param [runMode='default'] {string} determines logging level and whether to use Nock
     * @param [scoreThreshold=100] {number} lowest allowed trending score for any news item
     *
-    * @example How to create an instance, method(1)
+    * @example How to create an instance, method 1
     *   new TrendingNews(runMode, scoreThreshold)
     *
-    * @example How to create an instance, method(2)
+    * @example How to create an instance, method 2
     *   new TrendingNews(runMode)
     *
-    * @example How to create an instance, method(3)
+    * @example How to create an instance, method 3
     *   new TrendingNews(scoreThreshold)
     *
     * @property {object} results - latest news results [readonly]
@@ -162,7 +156,7 @@
    */
 
   TrendingNews = (function(_super) {
-    var classObj, filterNewsByTrendScore, filterNewsIfSeenBefore, get, getLatestNewsForTopic, results, resultsCallback, scoreThreshold, set;
+    var filterNewsByTrendScore, filterNewsIfSeenBefore, get, getLatestNewsForTopic, instObj, resultsCallback, session, set;
 
     __extends(TrendingNews, _super);
 
@@ -186,23 +180,13 @@
       return _results;
     };
 
-    scoreThreshold = 100;
-
-    get({
-      scoreThreshold: function() {
-        return scoreThreshold;
-      }
-    });
-
-    results = null;
+    instObj = session = null;
 
     get({
       results: function() {
-        return results;
+        return this._results;
       }
     });
-
-    classObj = null;
 
 
     /**
@@ -211,41 +195,19 @@
       * @constructs TrendingNews
      */
 
-    function TrendingNews(mode, score) {
-      if (mode == null) {
-        mode = 'default';
+    function TrendingNews(s) {
+      if (s == null) {
+        s = config.LOG;
       }
-      if (score == null) {
-        score = 100;
-      }
-      if (!mode) {
-        mode = 'default';
-      }
-      if (!score) {
-        score = 100;
-      }
-      switch (mode) {
-        case 'debug':
-        case 'prod':
-          logger.debugLevel = 'info';
-          break;
-        case 'test':
-          logger.debugLevel = 'error';
-          break;
-        default:
-          mode = 'default';
-      }
-      switch (mode) {
-        case 'prod':
-          process.env.NOCK_OFF = true;
-          logger.log('warn', 'Nock is OFF!');
-          break;
-        default:
-          logger.log('warn', 'Nock is ON');
-      }
-      logger.log('warn', 'in ' + mode + 'Mode (lowest log level: ' + logger.debugLevel + ')');
-      scoreThreshold = score;
-      logger.log('warn', 'scoreThreshold = ' + scoreThreshold);
+      session = s;
+      session.level(config.LOG_LEVEL_THRESHOLD);
+      instObj = this;
+      this._results = {
+        'items_with_response': {},
+        'items_above_score': {},
+        'items_not_seen_before': {},
+        'news_items': {}
+      };
     }
 
 
@@ -263,7 +225,7 @@
 
     filterNewsByTrendScore = function(newsItems) {
       return newsItems.filter(function(item) {
-        return item.trending_score >= scoreThreshold;
+        return item.trending_score >= config.SCORE_THRESHOLD;
       });
     };
 
@@ -291,7 +253,10 @@
       for (_i = 0, _len = newsItems.length; _i &lt; _len; _i++) {
         item = newsItems[_i];
         titleHash = hashCode.hash(item.title);
-        logger.log('info', titleHash + ', ' + item.title);
+        session.debug({
+          title_hash: titleHash,
+          title: item.title
+        });
         seenWhen = storage.getItem(titleHash);
         if (seenWhen === void 0) {
           unseen.push(item);
@@ -306,7 +271,7 @@
             err.level = "Warning";
             err.title = item.title;
             err.title_hash = titleHash;
-            logger.log('warn', err);
+            session.warn(err);
             seenWhen = [new Date(Date.now())];
           }
         }
@@ -332,7 +297,6 @@
 
     getLatestNewsForTopic = function(topic, resultsCallback) {
       var options;
-      logger.log('info', 'Getting all news for topic: ' + topic + '...');
       options = {
         hostname: config.REQUEST_HOSTNAME,
         path: config.REQUEST_PATH + encodeURIComponent(topic),
@@ -355,18 +319,23 @@
               err.name = "InvalidJSON";
               err.level = "Error";
               err.bad_response = data;
-              classObj.handleError(err, topic, false);
+              instObj.handleError(err, topic, false);
               data = {
                 link_list: []
               };
             }
             allNewsItems = data.link_list;
-            logger.log('info', '# ' + topic + ' items before filter: ' + allNewsItems.length);
+            if (allNewsItems.length > 0) {
+              instObj.results['items_with_response'][topic] = allNewsItems.length;
+            }
             filteredItems = filterNewsByTrendScore(allNewsItems);
-            logger.log('info', '# ' + topic + ' items after filter: ' + filteredItems.length);
+            if (filteredItems.length > 0) {
+              instObj.results['items_above_score'][topic] = filteredItems.length;
+            }
             unseenItems = filterNewsIfSeenBefore(filteredItems);
-            logger.log('info', '# ' + topic + ' items never seen before: ' + unseenItems.length);
-            logger.log('info', '---');
+            if (unseenItems.length > 0) {
+              instObj.results['items_not_seen_before'][topic] = unseenItems.length;
+            }
             return resultsCallback(topic, unseenItems);
           } else {
             err = new Error();
@@ -374,7 +343,7 @@
             err.level = "Error";
             err.topic = topic;
             err.http_code = response.statusCode;
-            return classObj.handleError(err, topic, true);
+            return instObj.handleError(err, topic, true);
           }
         });
         return response.on('error', function(e) {
@@ -383,7 +352,7 @@
           err.name = "BadResponse";
           err.level = "Error";
           err.topic = topic;
-          return classObj.handleError(err, topic, true);
+          return instObj.handleError(err, topic, true);
         });
       }).on('error', function(e) {
         var err;
@@ -391,7 +360,7 @@
         err.name = "BadRequest";
         err.level = "Error";
         err.topic = topic;
-        return classObj.handleError(err, topic, true);
+        return instObj.handleError(err, topic, true);
       });
     };
 
@@ -410,17 +379,20 @@
      */
 
     resultsCallback = function(topic, result) {
-      results[topic] = result;
-      if (Object.keys(results).length === config.TOPICS.length) {
-        classObj.logResults(results);
-        return classObj.emit('end', results);
+      var res;
+      res = instObj.results;
+      res['news_items'][topic] = result;
+      if (Object.keys(res.news_items).length === config.TOPICS.length) {
+        res['total_items_stored'] = storage.length() - 1;
+        instObj.logResults(res);
+        return instObj.emit('end', res);
       }
     };
 
 
     /**
       * Logs results at the end of the TrendingNews event cycle.
-      * Logs with level 'warn', public to allow for unit testing, although marked 'private'
+      * Logs with level 'info', public to allow for unit testing, although marked 'private'
       *
       * @param res {Object} results to log
       *
@@ -431,7 +403,9 @@
      */
 
     TrendingNews.prototype.logResults = function(res) {
-      return logger.log('warn', res);
+      return session.info({
+        results: res
+      });
     };
 
 
@@ -451,7 +425,7 @@
      */
 
     TrendingNews.prototype.handleError = function(error, topic, provideEmptyResult) {
-      logger.log('error', error);
+      session.error(error);
       if (provideEmptyResult) {
         return resultsCallback(topic, []);
       }
@@ -468,9 +442,9 @@
 
     TrendingNews.prototype.getLatest = function() {
       var topic, _i, _len, _ref, _results;
-      classObj = this;
-      results = {};
-      logger.log('info', 'Getting latest trending news items for ' + config.TOPICS.length + ' topic(s)...');
+      session.info({
+        num_topics: config.TOPICS.length
+      }, 'Getting latest trending news items...');
       _ref = config.TOPICS;
       _results = [];
       for (_i = 0, _len = _ref.length; _i &lt; _len; _i++) {
@@ -489,7 +463,6 @@
     * A module for the {@link TrendingNews} class
     * @module trending-news
     *
-    * @requires logger
     * @requires hash-code
     * @requires config
     * @requires mock-index-stream
@@ -514,7 +487,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.2</a>
-		on Wed Oct 8th 2014 7:44 pm using the <a
+		on Sun Oct 12th 2014 9:27 pm using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
