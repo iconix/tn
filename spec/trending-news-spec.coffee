@@ -117,7 +117,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith({ name : 'BadStatusCode', level : 'Error', topic : 'Error', http_code : 404 }, 'Error', true)
+        .toHaveBeenCalledWith({ name : 'Error', type : 'BadStatusCode' }, 'Error', true)
       expect(Object.keys(newsInstance.results.news_items).length).toEqual(0)
       done()
     )
@@ -130,7 +130,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith({ name : 'BadRequest', level : 'Error', topic : 'Error' }, 'Error', true)
+        .toHaveBeenCalledWith({ name : 'Error', type : 'BadRequest' }, 'Error', true)
       expect(Object.keys(newsInstance.results.news_items).length).toEqual(0)
       done()
     )
@@ -143,7 +143,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith({ name : 'BadResponse', level : 'Error', topic : 'Error' }, 'Error', true)
+        .toHaveBeenCalledWith({ name : 'Error', type : 'BadResponse' }, 'Error', true)
       done()
     )
 
@@ -156,7 +156,7 @@ describe "TrendingNews (tests for when things go wrong)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith({ name : 'InvalidJSON', level : 'Error', bad_response : 'Status OK, but not a JSON response.' }, 'NotJson', false)
+        .toHaveBeenCalledWith({ name : 'Error', type : 'InvalidJSON' }, 'NotJson', false)
     )
 
     spyOn(newsInstance, 'logResults').andCallFake(() ->
@@ -279,7 +279,7 @@ describe "TrendingNews (tests with multiple topics)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith({ name : 'BadStatusCode', level : 'Error', topic : 'Redirect', http_code : 302 }, 'Redirect', true)
+        .toHaveBeenCalledWith({ name : 'Error', type : 'BadStatusCode' }, 'Redirect', true)
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
@@ -311,7 +311,7 @@ describe "TrendingNews (tests with multiple topics)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith({ name : 'BadRequest', level : 'Error', topic : 'Error' }, 'Error', true)
+        .toHaveBeenCalledWith({ name : 'Error', type : 'BadRequest' }, 'Error', true)
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)
@@ -343,7 +343,7 @@ describe "TrendingNews (tests with multiple topics)", ->
 
     spyOn(newsInstance, 'handleError').andCallFake(() ->
       expect(newsInstance.handleError)
-        .toHaveBeenCalledWith({ name : 'BadRequest', level : 'Error', topic : 'Error' }, 'Error', true)
+        .toHaveBeenCalledWith({ name: 'Error', type : 'BadRequest' }, 'Error', true)
 
       numRequestsProcessed++
       if (numRequestsProcessed == 2)

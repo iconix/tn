@@ -72,6 +72,7 @@ class TrendingNews extends EventEmitter
     * cycle), the previous 'seen' history is deleted and lost as the new record is created.
     *
     * @param newsItems {Array<Object>} list of news items to filter
+    * @param topic {String} topic for news items, logged if there is a storage problem
     * @return {Array<Object>} list of news items, filtered by seen before status
     *
     * @method filterNewsIfSeenBefore
@@ -79,7 +80,7 @@ class TrendingNews extends EventEmitter
     * @instance
     * @private
   ###
-  filterNewsIfSeenBefore = (newsItems) ->
+  filterNewsIfSeenBefore = (newsItems, topic) ->
     unseen = []
 
     storage.initSync({
@@ -100,12 +101,14 @@ class TrendingNews extends EventEmitter
         catch TypeError
           err = new Error('Problem persisting storage in a previous cycle'
             + ' - restarting the history of this news item')
-          err.name = "Storage"
-          err.level = "Warning" # means fix below not required to continue
-          err.title = item.title
-          err.title_hash = titleHash
 
-          session.warn err
+          session.warn({
+            err: err,
+            type: 'Storage',
+            topic: topic,
+            title: item.title,
+            title_hash: titleHash
+          })
           seenWhen = [ new Date(Date.now()) ]
 
       storage.setItem(titleHash, seenWhen)
@@ -144,10 +147,8 @@ class TrendingNews extends EventEmitter
           try
             data = JSON.parse(data)
           catch SyntaxError
-            err = new Error()
-            err.name = "InvalidJSON"
-            err.level = "Error" # means fix below required to continue
-            err.bad_response = data
+            err = new Error('{bad_response: ' + data + '}')
+            err.type = 'InvalidJSON'
 
             instObj.handleError err, topic, false
             data = {link_list: []}
@@ -162,34 +163,27 @@ class TrendingNews extends EventEmitter
           if filteredItems.length > 0
             instObj.results['items_above_score'][topic] = filteredItems.length
 
-          unseenItems = filterNewsIfSeenBefore filteredItems
+          unseenItems = filterNewsIfSeenBefore filteredItems, topic
           if unseenItems.length > 0
             instObj.results['items_not_seen_before'][topic] = unseenItems.length
 
           resultsCallback topic, unseenItems
         else
-          err = new Error()
-          err.name = "BadStatusCode"
-          err.level = "Error"
-          err.topic = topic
-          err.http_code = response.statusCode
+          err = new Error('{http_code: ' + response.statusCode + '}')
+          err.type = 'BadStatusCode'
 
           instObj.handleError err, topic, true
       )
 
       response.on('error', (e) ->
         err = new Error(e.message)
-        err.name = "BadResponse"
-        err.level = "Error"
-        err.topic = topic
+        err.type = 'BadResponse'
 
         instObj.handleError err, topic, true
       )
     ).on('error', (e) -> # on request error
       err = new Error(e.message)
-      err.name = "BadRequest"
-      err.level = "Error"
-      err.topic = topic
+      err.type = 'BadRequest'
 
       instObj.handleError err, topic, true
     )
@@ -246,7 +240,7 @@ class TrendingNews extends EventEmitter
     * @private
   ###
   handleError: (error, topic, provideEmptyResult) ->
-    session.error error
+    session.error({err: error, type: error.type, topic: topic})
     resultsCallback topic, [] if provideEmptyResult
 
   ###*

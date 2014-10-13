@@ -39,8 +39,8 @@ var addProcessListeners = function() {
   });
 
   process.on('uncaughtException', function (e) {
-      session.fatal('Aborting process on Uncaught Exception...');
-      session.fatal(e);
+      session.info('Aborting process...');
+      session.fatal({err: e, type: 'UncaughtException'});
 
       process.abort();
   });
@@ -206,13 +206,14 @@ var main = function() {
   }
   else
   {
-    var err = new Error('Aborting process');
-    err.name = 'InvalidArguments';
-    err.level = 'Fatal';
-    err.first_arg = UserRunMode;
-    err.second_arg = UserScoreThreshold;
+    var err = new Error('Aborting process...');
+    log.fatal({
+      err: err,
+      type: 'InvalidArguments',
+      first_arg: UserRunMode,
+      second_arg: UserScoreThreshold
+    });
 
-    log.fatal(err);
     process.abort();
   }
 }

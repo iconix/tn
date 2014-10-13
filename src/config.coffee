@@ -1,4 +1,10 @@
-defaultLogger = require('bunyan').createLogger({name: 'tn'})
+bunyan = require 'bunyan'
+defaultLogger = bunyan.createLogger({
+  name: 'tn'
+  serializers: {
+    err: bunyan.stdSerializers.err
+  }
+})
 
 define = (name, value, isWritable) ->
   Object.defineProperty exports, name, {
