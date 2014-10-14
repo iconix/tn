@@ -6,7 +6,7 @@ var TrendingNews = require('./lib/trending-news');
 var config = require('./lib/config');
 var validateArguments = require('./lib/validate-arguments');
 
-var session;
+var session, sessionTimer, processTimer;
 var log = config.LOG;
 var notificationsSent = true;
 
@@ -19,12 +19,32 @@ instapush.settings({
   secret: nconf.get('app_secret')
 });
 
+var logProcessDuration = function() {
+  var processDuration = process.hrtime(processTimer);
+  log.info({process_duration_ms:
+    (processDuration[0]*1e3 + processDuration[1]/1000000).toFixed(3)});
+}
+
+var logSessionDuration = function() {
+  // check for dummy values
+  if (sessionTimer[0] != 0 && sessionTimer[1] != 0)
+  {
+    var sessionDuration = process.hrtime(sessionTimer);
+    session.info({session_duration_ms:
+      (sessionDuration[0]*1e3 + sessionDuration[1]/1000000).toFixed(3)});
+    sessionTimer = [0, 0]; // reset to dummy
+  }
+}
+
 var onExit = function(signal) {
   session.warn({shutdown_signal: signal}, 'Shutting down process...');
 
   // non-blocking check if mobile notifications have been sent before exiting
   setInterval(function() {
     if (notificationsSent)
+      logSessionDuration();
+      logProcessDuration();
+
       process.exit();
   }, config.POLL_TO_EXIT_RATE);
 }
@@ -41,6 +61,9 @@ var addProcessListeners = function() {
   process.on('uncaughtException', function (e) {
       session.info('Aborting process...');
       session.fatal({err: e, type: 'UncaughtException'});
+
+      logSessionDuration();
+      logProcessDuration();
 
       process.abort();
   });
@@ -117,10 +140,11 @@ var sendNotifications = function(results) {
       clearInterval(sendIntervalObj);
 
       if (config.SEND_NOTIFICATIONS)
-      {
         session.info('Notifications sent!');
-      }
+
       session.info(sentSummary);
+      logSessionDuration();
+
       notificationsSent = true;
     }
   }, config.POLL_TO_EXIT_RATE);
@@ -176,6 +200,7 @@ var generateUuid = function() {
 }
 
 var executeMainLoop = function() {
+  sessionTimer = process.hrtime();
   session = log.child({session_id: generateUuid()});
 
   var trendingNews = new TrendingNews(session);
@@ -188,6 +213,7 @@ var executeMainLoop = function() {
 }
 
 var main = function() {
+  processTimer = process.hrtime();
   var areValidArgs = validateArguments(UserRunMode, UserScoreThreshold);
 
   if (areValidArgs)
@@ -214,6 +240,7 @@ var main = function() {
       second_arg: UserScoreThreshold
     });
 
+    logProcessDuration();
     process.abort();
   }
 }
