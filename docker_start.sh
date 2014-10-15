@@ -7,7 +7,7 @@ git clone https://github.com/iconix/tn.git
 
 cd tn
 
-npm install && npm install -g coffee-script
+npm install --quiet && npm install --quiet -g coffee-script
 
 # compile CoffeeScript
 coffee --compile --output lib/ src/
