@@ -4,7 +4,7 @@
   "description": "GitHub WebHooks + Gith = Automatic Deployments",
   "main": "hook.js",
   "scripts": {
-    "start": "./node_modules/.bin/forever start hook.js"
+    "start": "./node_modules/.bin/forever -a start hook.js"
   },
   "repository": {
     "type": "git",
