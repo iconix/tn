@@ -32,7 +32,7 @@ gith({
     execFile('./hook.sh', execOptions, function(error, stdout, stderr) {
       // Log success in some manner
 
-      log.info(stdout);
+      console.log(stdout);
 
       var end = Date.now();
       log.info({deploy_time_s: ((end - start)/1000)}, 'Deployment complete.');
