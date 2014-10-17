@@ -1,15 +1,28 @@
 // http://fideloper.com/node-github-autodeploy
 
-var gith = require('gith').create( 9001 ); // Listen on port 9001
+var portNum = 9001;
+
+var gith = require('gith').create( portNum ); // Listen on port 9001
 var execFile = require('child_process').execFile; // Import execFile, to run our bash script
 
+var bunyan = require('bunyan');
+var log = bunyan.createLogger({
+  name: 'gith_deployer',
+  serializers: {
+    err: bunyan.stdSerializers.err
+  }
+});
+
+var repoName = 'iconix/tn';
+var events = 'all';
+
 gith({
-  repo: 'iconix/tn'
-}).on( 'all', function( payload ) {
+  repo: repoName
+}).on( events, function( payload ) {
   if( payload.branch === 'master' )
   {
     var start = Date.now();
-    console.log( '[' + Date(start) + '] Auto-deploying master branch of repo ' + payload.repo + '...' );
+    log.info({repo: payload.repo}, 'Auto-deploying master branch...');
 
     // Increase maxBuffer from 200*1024 to 1024*1024
     var execOptions = {
@@ -19,15 +32,19 @@ gith({
     execFile('./hook.sh', execOptions, function(error, stdout, stderr) {
       // Log success in some manner
 
-      console.log(stdout);
+      log.info(stdout);
 
       var end = Date.now();
-      console.log( '[' + Date(end) + '] Deployment complete.' );
-      console.log('Deployment completed in ' + (end - start)/1000 + 's');
+      log.info({deploy_time_s: ((end - start)/1000)}, 'Deployment complete.');
     });
   } else {
-    console.log( '[' + Date(start) + '] Payload was not for master, aborting.' );
+    log.info({branch: payload.branch}, 'Payload was not for master, aborting.');
   }
 });
 
-console.log('Gith is now listening.');
+process.on('uncaughtException', function (e) {
+  log.fatal({err: e, type: 'UncaughtException'});
+  process.abort();
+});
+
+log.info({port_number: portNum, repo: repoName, events: events}, 'Gith is now listening.');

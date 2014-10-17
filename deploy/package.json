@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/iconix/tn",
   "dependencies": {
+    "bunyan": "^1.1.3",
     "forever": "^0.11.1",
     "gith": "^1.0.4"
   },
