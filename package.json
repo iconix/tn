@@ -36,7 +36,6 @@
     "bunyan": "^1.1.0",
     "forever": "^0.11.1",
     "instapush": "0.0.7",
-    "loggly": "^1.0.5",
     "nconf": "^0.6.9",
     "node-persist": "0.0.2",
     "node-uuid": "^1.4.1"

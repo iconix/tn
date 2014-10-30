@@ -15,6 +15,12 @@ if [ $? -eq 1 ];
   docker run -v /data --name tn_data busybox
 fi
 
+echo '>>> Pulling pre-built logspout router'
+docker pull progrium/logspout
+
+echo 'Creating/starting logspout to monitor Docker Unix socket'
+docker run -v=/var/run/docker.sock:/tmp/docker.sock -h $HOSTNAME progrium/logspout syslog://logs2.papertrailapp.com:24683
+
 echo '>>> Get old container id'
 CID=$(docker ps | grep "iconix/tn" | awk '{print $1}')
 echo $CID
