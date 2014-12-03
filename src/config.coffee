@@ -6,6 +6,7 @@ defaultLogger = bunyan.createLogger({
   }
 })
 
+# TODO Add checks for writeable configs, ensure they are valid before redefining
 define = (name, value, isWritable) ->
   Object.defineProperty exports, name, {
     value: value
@@ -118,7 +119,7 @@ config = () ->
   define 'LOG', defaultLogger, false
 
   ###*
-    * @description Determines logging level and whether to use Nock.
+    * @description Determines logging level and whether to use Nock. Should be either 'trace', 'debug', 'default', 'test', or 'prod'.
     * Configurable from command line.
     *
     * @constant RUN_MODE
@@ -128,7 +129,7 @@ config = () ->
   define 'RUN_MODE', 'default', true
 
   ###*
-    * @description Lowest-allowed trending score for any news item.
+    * @description Lowest-allowed trending score for any news item. Should be a number from 1 to 100.
     * Configurable from command line.
     *
     * @constant SCORE_THRESHOLD

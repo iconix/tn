@@ -72,7 +72,7 @@ class TrendingNews extends EventEmitter
     * cycle), the previous 'seen' history is deleted and lost as the new record is created.
     *
     * @param newsItems {Array<Object>} list of news items to filter
-    * @param topic {String} topic for news items, logged if there is a storage problem
+    * @param topic {string} topic for news items, logged if there is a storage problem
     * @return {Array<Object>} list of news items, filtered by seen before status
     *
     * @method filterNewsIfSeenBefore
@@ -120,7 +120,7 @@ class TrendingNews extends EventEmitter
     * If there is a problem retrieving news for a topic, the results callback
     * is called with an empty list of results.
     *
-    * @param topic {String} topic to get news about
+    * @param topic {string} topic to get news about
     * @param resultsCallback {Function} function to call on the success of request
     *
     * @method getLatestNewsForTopic
@@ -192,7 +192,7 @@ class TrendingNews extends EventEmitter
     * Stores the resultant news items of a topic.
     * Waits for the results for all topics before emitting the end event.
     *
-    * @param topic {String} topic with news
+    * @param topic {string} topic with news
     * @param result {Array<Object>} news to store
     *
     * @callback TrendingNews~resultsCallback
@@ -231,7 +231,7 @@ class TrendingNews extends EventEmitter
     * Public to allow for unit testing, although marked 'private'
     *
     * @param error {Object} Error object with descriptive properties
-    * @param topic {String} topic being processed during error
+    * @param topic {string} topic being processed during error
     * @param provideEmptyResult {Boolean} if true, provide empty result for topic to results callback
     *
     * @method handleError

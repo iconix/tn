@@ -32,7 +32,7 @@ var main = function() {
   {
     processListeners.add();
     configsMain.setByUserInput(UserRunMode, UserScoreThreshold);
-    configsMain.log();
+    configsMain.logSettings();
 
     // initial call
     executeMainLoop();
